@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Mes apports</title>
+  <meta name="description" content="Journal alimentaire et suivi des apports en vitamines, minéraux et macronutriments.">
+  <meta name="theme-color" content="#F3F5F4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0F1312" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mes apports">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div>
+        <p class="app-name">Mes apports</p>
+        <h1 id="today-title">Aujourd’hui</h1>
+      </div>
+      <button class="icon-btn" data-action="open-settings" aria-label="Réglages">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/><circle cx="10" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.7"/></svg>
+      </button>
+    </header>
+
+    <section id="summary" class="summary" aria-label="Résumé du jour"></section>
+
+    <div id="banners"></div>
+
+    <section id="entry" class="block" aria-labelledby="entry-title">
+      <div class="block-head">
+        <h2 id="entry-title">Ajouter un repas</h2>
+        <button class="link-btn hidden" data-action="cancel-edit" id="cancel-edit">Annuler</button>
+      </div>
+
+      <div class="panel">
+        <div class="meal-meta">
+          <label class="date-field">
+            <span class="sr-only">Date du repas</span>
+            <input type="date" id="meal-date">
+          </label>
+          <div class="segmented" id="meal-type" role="radiogroup" aria-label="Type de repas"></div>
+        </div>
+
+        <div id="frequent" class="frequent"></div>
+
+        <div class="search">
+          <label for="food-search" class="sr-only">Rechercher un aliment</label>
+          <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="food-search" type="search" placeholder="Ajouter un aliment : pâtes, huile d’olive…" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="search">
+          <div id="search-results" class="results" role="listbox" hidden></div>
+        </div>
+
+        <div id="qty-panel" class="qty-panel" hidden></div>
+
+        <ul id="draft-items" class="draft-items"></ul>
+
+        <div class="entry-foot">
+          <p id="draft-total" class="muted"></p>
+          <button class="btn primary" id="save-meal" data-action="save-meal" disabled>Enregistrer le repas</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="today" class="block" aria-labelledby="today-meals-title">
+      <h2 id="today-meals-title">Repas du jour</h2>
+      <div id="today-meals"></div>
+    </section>
+
+    <section id="gauges" class="block" aria-labelledby="gauges-title">
+      <div class="block-head">
+        <h2 id="gauges-title">Couverture de vos besoins</h2>
+      </div>
+      <p class="intro muted">Moyenne de vos derniers jours, les plus récents comptant davantage. Un repas oublié fait baisser les jauges.</p>
+      <div class="legend" aria-hidden="true">
+        <span><i class="dot carence"></i>Carence</span>
+        <span><i class="dot insuffisant"></i>Insuffisant</span>
+        <span><i class="dot ok"></i>Couvert</span>
+        <span><i class="dot exces"></i>Excès</span>
+        <span><svg class="partial" viewBox="0 0 16 16" width="13" height="13"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.4 2.2"/></svg>Données incomplètes</span>
+      </div>
+      <div id="gauge-list"></div>
+      <p class="disclaimer">Estimation indicative fondée sur des valeurs moyennes, pas un diagnostic. Seul un bilan sanguin permet de confirmer une carence.</p>
+    </section>
+
+    <section id="history" class="block" aria-labelledby="history-title">
+      <h2 id="history-title">Historique</h2>
+      <div id="history-list"></div>
+    </section>
+
+    <footer class="foot">
+      <p>Données nutritionnelles : Anses. 2025. Table de composition nutritionnelle des aliments Ciqual.</p>
+      <p>Références : Anses, références nutritionnelles en vitamines et minéraux (2021).</p>
+      <p id="storage-info"></p>
+    </footer>
+  </div>
+
+  <dialog id="sheet" class="sheet"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

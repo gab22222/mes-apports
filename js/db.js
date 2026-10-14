@@ -1,0 +1,59 @@
+// Stockage local (IndexedDB). Chaque modification est écrite immédiatement.
+
+const DB_NAME = 'mes-apports';
+const DB_VERSION = 1;
+let dbPromise;
+
+function open() {
+  if (!dbPromise) {
+    dbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains('meals')) db.createObjectStore('meals', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('foods')) db.createObjectStore('foods', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  return dbPromise;
+}
+
+function run(store, mode, fn) {
+  return open().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(store, mode);
+    const s = tx.objectStore(store);
+    const req = fn(s);
+    tx.oncomplete = () => resolve(req && req.result);
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  }));
+}
+
+export const db = {
+  all: store => run(store, 'readonly', s => s.getAll()),
+  put: (store, obj) => run(store, 'readwrite', s => s.put(obj)),
+  del: (store, id) => run(store, 'readwrite', s => s.delete(id)),
+  get: key => run('kv', 'readonly', s => s.get(key)),
+  set: (key, value) => run('kv', 'readwrite', s => s.put(value, key)),
+  async putMany(store, list) {
+    const d = await open();
+    return new Promise((resolve, reject) => {
+      const tx = d.transaction(store, 'readwrite');
+      const s = tx.objectStore(store);
+      list.forEach(o => s.put(o));
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+    });
+  },
+  async clearAll() {
+    for (const store of ['meals', 'foods', 'kv']) await run(store, 'readwrite', s => s.clear());
+  },
+};
+
+export function uid() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
