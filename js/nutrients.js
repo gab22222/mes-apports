@@ -60,7 +60,14 @@ export const DEFAULT_SETTINGS = {
   cap: 150,               // plafond journalier en % des apports recommandés
   halfLives: { macro: 1.5, hydro: 3, stock: 10, limite: 1.5 },
   horizon: 60,            // jours pris en compte
+  theme: 'light',         // 'light' (fond blanc), 'dark' ou 'auto' (selon le système)
 };
+
+export const THEMES = [
+  { id: 'light', label: 'Clair' },
+  { id: 'dark', label: 'Sombre' },
+  { id: 'auto', label: 'Automatique' },
+];
 
 export const ACTIVITY_LEVELS = [
   { id: 1.4, label: 'Sédentaire', hint: 'travail assis, peu de marche' },

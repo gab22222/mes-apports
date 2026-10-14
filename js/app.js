@@ -1,6 +1,6 @@
 import { db, uid } from './db.js';
 import {
-  NUTRIENTS, NUTRIENT_BY_ID, SECTIONS, HALF_LIFE_CATS, DEFAULT_SETTINGS, ACTIVITY_LEVELS,
+  NUTRIENTS, NUTRIENT_BY_ID, SECTIONS, HALF_LIFE_CATS, DEFAULT_SETTINGS, ACTIVITY_LEVELS, THEMES,
   references, REFERENCE_NOTES,
 } from './nutrients.js';
 import {
@@ -57,6 +57,7 @@ async function init() {
   state.equivs = equivs || {};
   state.profile = profile || null;
   state.settings = mergeSettings(settings);
+  applyTheme(state.settings.theme);
   state.meta = meta || {};
   state.customFoods.forEach(registerCustomFood);
   state.draft = draft || newDraft();
@@ -509,6 +510,14 @@ function openSettings() {
   openSheet(`
     <div class="sheet-head"><h2>Réglages</h2><button type="button" class="link-btn" data-action="close-sheet">Fermer</button></div>
 
+    <h3>Apparence</h3>
+    <div class="form-group">
+      <div class="field stack"><span>Thème</span>
+        <div class="radio-row" id="theme-choice">${THEMES.map(t => `<label><input type="radio" name="theme" value="${t.id}" ${s.theme === t.id ? 'checked' : ''}><span>${t.label}</span></label>`).join('')}</div>
+      </div>
+    </div>
+    <p class="note">Automatique suit le mode clair ou sombre de l’appareil.</p>
+
     <h3>Profil</h3>
     <form id="settings-profile">${profileFields(p)}</form>
 
@@ -864,6 +873,12 @@ function bindEvents() {
     if (e.target.closest('#settings-profile, #settings-calc')) onSettingsInput(e);
   });
   s.addEventListener('change', async e => {
+    if (e.target.name === 'theme') {
+      state.settings.theme = e.target.value;
+      applyTheme(state.settings.theme);
+      await db.set('settings', state.settings);
+      return;
+    }
     if (e.target.closest('#settings-profile')) onSettingsInput(e);
     if (e.target.id === 'backup-file' && e.target.files[0]) importBackup(e.target.files[0]);
     if (e.target.id === 'import-food-file' && e.target.files[0]) $('#import-text').value = await e.target.files[0].text();
@@ -925,7 +940,7 @@ function onClick(e) {
     case 'nutrient': openNutrient(id); break;
     case 'open-settings': openSettings(); break;
     case 'close-sheet': closeSheet(); break;
-    case 'reset-calc': state.settings = structuredClone(DEFAULT_SETTINGS); db.set('settings', state.settings); renderGauges(); openSettings(); break;
+    case 'reset-calc': state.settings = { ...structuredClone(DEFAULT_SETTINGS), theme: state.settings.theme }; db.set('settings', state.settings); renderGauges(); openSettings(); break;
     case 'new-food': openSheet(customFoodForm()); break;
     case 'edit-food': openSheet(customFoodForm(state.customFoods.find(c => c.id === id))); break;
     case 'delete-food': deleteCustomFood(t, id); break;
@@ -939,6 +954,14 @@ function onClick(e) {
 }
 
 // ---------------------------------------------------------------- Utilitaires
+
+function applyTheme(theme) {
+  const t = ['light', 'dark', 'auto'].includes(theme) ? theme : 'light';
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem('theme', t); } catch (e) { /* stockage indisponible */ }
+  const dark = t === 'dark' || (t === 'auto' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0F1312' : '#FFFFFF');
+}
 
 let toastTimer;
 function toast(msg, ms = 2600, actionHtml = '') {
