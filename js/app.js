@@ -8,7 +8,7 @@ import {
   unitGrams, fmtNum, displayValue, readValue,
 } from './foods.js';
 import {
-  dateKey, parseKey, daysBetween, itemsIntake, computeGauges, STATUS_LABEL, topSources, mealSignature,
+  dateKey, parseKey, daysBetween, addDays, itemsIntake, computeGauges, STATUS_LABEL, topSources, mealSignature,
 } from './model.js';
 
 const MEAL_TYPES = [
@@ -36,6 +36,8 @@ const state = {
   usage: new Map(),
   lastUse: new Map(),
   historyDays: 14,
+  sim: { items: [], days: 30, withHistory: false },
+  simPicked: null,
 };
 
 const $ = sel => document.querySelector(sel);
@@ -48,8 +50,8 @@ async function init() {
   registerServiceWorker();
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* facultatif */ }
 
-  const [meals, customFoods, equivs, profile, settings, meta, draft] = await Promise.all([
-    db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'), db.get('meta'), db.get('draft'),
+  const [meals, customFoods, equivs, profile, settings, meta, draft, sim] = await Promise.all([
+    db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'), db.get('meta'), db.get('draft'), db.get('sim'),
     loadCiqual(),
   ]);
   state.meals = meals || [];
@@ -61,6 +63,7 @@ async function init() {
   state.meta = meta || {};
   state.customFoods.forEach(registerCustomFood);
   state.draft = draft || newDraft();
+  if (sim) state.sim = { ...state.sim, ...sim };
   if (!state.meta.firstLaunch) { state.meta.firstLaunch = today(); saveMeta(); }
 
   bindEvents();
@@ -313,37 +316,40 @@ function renderGauges() {
 
 const PARTIAL_ICON = `<svg class="partial" viewBox="0 0 16 16" width="13" height="13" aria-label="Données incomplètes"><title>Données incomplètes : valeur sans doute sous-estimée</title><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.4 2.2"/></svg>`;
 
-function gaugeRow(n, d) {
+function gaugeRow(n, d, interactive = true) {
   const scale = 150;
   const width = Math.min(d.pct, scale) / scale * 100;
   const partial = d.missingShare > 0.25;
   const statusText = STATUS_LABEL[d.status];
-  return `<button type="button" class="gauge ${d.status}" data-action="nutrient" data-id="${n.id}" aria-label="${n.label} : ${Math.round(d.pct)} %, ${statusText}">
-    <span class="g-name">${n.label}${partial ? PARTIAL_ICON : ''}</span>
+  const inner = `<span class="g-name">${n.label}${partial ? PARTIAL_ICON : ''}</span>
     <span class="bar"><span class="fill" style="width:${width.toFixed(1)}%"></span><span class="tick" style="left:${(100 / scale * 100).toFixed(2)}%"></span></span>
-    <span class="g-pct ${d.status}">${Math.round(d.pct)} %</span>
-  </button>`;
+    <span class="g-pct ${d.status}">${Math.round(d.pct)} %</span>`;
+  if (!interactive) return `<div class="gauge static ${d.status}" role="img" aria-label="${n.label} : ${Math.round(d.pct)} %, ${statusText}">${inner}</div>`;
+  return `<button type="button" class="gauge ${d.status}" data-action="nutrient" data-id="${n.id}" aria-label="${n.label} : ${Math.round(d.pct)} %, ${statusText}">${inner}</button>`;
 }
 
 // ---------------------------------------------------------------- Recherche
 
 let searchResults = [], searchIndex = -1;
 
+const SEARCH_BOX = { main: '#search-results', ref: '#ref-results', sim: '#sim-results' };
+const PICK_ACTION = { main: 'pick', ref: 'pick-ref', sim: 'pick-sim' };
+
 function runSearch(q, target = 'main') {
-  const box = target === 'main' ? $('#search-results') : $('#ref-results');
+  const box = $(SEARCH_BOX[target]);
   if (!q.trim()) { box.hidden = true; box.innerHTML = ''; searchResults = []; return; }
-  searchResults = search(q, state.usage, target === 'main' ? 12 : 8).filter(f => target === 'main' || !f.custom);
+  searchResults = search(q, state.usage, target === 'ref' ? 8 : 12).filter(f => target !== 'ref' || !f.custom);
   searchIndex = searchResults.length ? 0 : -1;
   box.hidden = false;
   box.innerHTML = searchResults.length ? searchResults.map((f, i) => {
     const grp = f.group.split('|')[1] || f.group.split('|')[0] || '';
-    return `<button type="button" class="result" role="option" aria-selected="${i === searchIndex}" data-action="${target === 'main' ? 'pick' : 'pick-ref'}" data-id="${esc(f.id)}">
+    return `<button type="button" class="result" role="option" aria-selected="${i === searchIndex}" data-action="${PICK_ACTION[target]}" data-id="${esc(f.id)}">
       ${esc(f.name)}${f.custom ? '<span class="tag">perso</span>' : ''}<small>${esc(grp)}</small></button>`;
   }).join('') : `<div class="empty">Aucun aliment trouvé.${target === 'main' ? ' <button type="button" class="link-btn" data-action="new-food">Créer un aliment personnalisé</button>' : ''}</div>`;
 }
 
 function moveSelection(delta, target) {
-  const box = target === 'main' ? $('#search-results') : $('#ref-results');
+  const box = $(SEARCH_BOX[target]);
   if (!searchResults.length) return;
   searchIndex = (searchIndex + delta + searchResults.length) % searchResults.length;
   box.querySelectorAll('.result').forEach((b, i) => b.setAttribute('aria-selected', i === searchIndex));
@@ -627,6 +633,208 @@ function addTipToDraft(foodId, grams) {
   toast('Ajouté au repas en cours : ajustez si besoin, puis enregistrez');
 }
 
+// ----- Simulation d'une journée type
+
+const SIM_DAYS = [7, 14, 30, 60];
+const saveSim = () => db.set('sim', { items: state.sim.items, days: state.sim.days, withHistory: state.sim.withHistory });
+
+function openSimulation() {
+  const dates = [...new Set(state.meals.map(m => m.date))].sort().reverse().slice(0, 30);
+  openSheet(`
+    <div class="sheet-head"><h2>Simulation</h2><button type="button" class="link-btn" data-action="close-sheet">Fermer</button></div>
+    <p>Composez une journée type : l’app calcule les jauges comme si vous la mangiez tous les jours.</p>
+    <div class="block-head sim-head"><h3>Journée type</h3>
+      <button type="button" class="link-btn" data-action="sim-clear">Vider</button></div>
+    <div class="panel">
+      ${dates.length ? `<label class="sr-only" for="sim-copy-day">Copier un jour enregistré</label>
+      <select id="sim-copy-day" class="sim-copy">
+        <option value="">Copier un jour enregistré…</option>
+        ${dates.map(k => `<option value="${k}">${esc(formatDay(k).charAt(0).toUpperCase() + formatDay(k).slice(1))}</option>`).join('')}
+      </select>` : ''}
+      <div class="search">
+        <label for="sim-search" class="sr-only">Ajouter un aliment à la journée type</label>
+        <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input id="sim-search" type="search" placeholder="Ajouter un aliment" autocomplete="off" autocorrect="off" spellcheck="false">
+        <div id="sim-results" class="results" role="listbox" hidden></div>
+      </div>
+      <div id="sim-qty" class="qty-panel" hidden></div>
+      <ul id="sim-items" class="draft-items"></ul>
+      <p id="sim-total" class="sim-total muted"></p>
+    </div>
+    <h3>Durée</h3>
+    <div class="segmented" id="sim-days" role="radiogroup" aria-label="Durée de la simulation"></div>
+    <label class="check"><input type="checkbox" id="sim-history" ${state.sim.withHistory ? 'checked' : ''}>
+      <span>Partir de mon historique réel<small>Sinon, la simulation part de zéro comme au premier lancement.</small></span></label>
+    <div id="sim-result"></div>`);
+  renderSimAll();
+}
+
+function renderSimAll() {
+  if (!$('#sim-items')) return;
+  $('#sim-days').innerHTML = SIM_DAYS.map(n =>
+    `<button type="button" role="radio" aria-checked="${state.sim.days === n}" data-action="sim-days" data-days="${n}">${n} jours</button>`).join('');
+  $('#sim-items').innerHTML = state.sim.items.map((it, i) => `<li>
+      <button type="button" class="di-main" data-action="sim-edit-item" data-index="${i}" aria-label="Modifier la quantité">
+        <span class="di-name">${esc(shortName(foods.get(it.foodId)))}</span>
+        <span class="di-qty">${itemLabel(it)}</span>
+      </button>
+      <button type="button" class="remove-btn" data-action="sim-remove" data-index="${i}" aria-label="Retirer">×</button>
+    </li>`).join('');
+  const kcal = itemsIntake(state.sim.items).totals.energie;
+  $('#sim-total').textContent = state.sim.items.length
+    ? `${state.sim.items.length} aliment${state.sim.items.length > 1 ? 's' : ''} · ${fmtNum(kcal, 0)} kcal par jour`
+    : 'Ajoutez les aliments d’une journée complète, ou copiez un jour déjà enregistré.';
+  renderSimQty();
+  renderSimResult();
+}
+
+function simPick(id, editIndex) {
+  const food = foods.get(id);
+  if (!food) return;
+  let qty = 100, unit = 'g';
+  if (editIndex !== undefined) ({ qty, unit } = state.sim.items[editIndex]);
+  else if (state.lastUse.has(id)) ({ qty, unit } = state.lastUse.get(id));
+  state.simPicked = { food, qty, unit, editIndex };
+  $('#sim-search').value = '';
+  runSearch('', 'sim');
+  renderSimQty();
+  $('#sim-qty-input').focus();
+  $('#sim-qty-input').select();
+}
+
+function renderSimQty() {
+  const el = $('#sim-qty');
+  if (!el) return;
+  const p = state.simPicked;
+  if (!p) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  const per = unitGrams(p.food, p.unit, state.equivs);
+  const needEquiv = p.unit !== 'g' && (!per || p.editEquiv);
+  el.innerHTML = `
+    <p class="qty-name">${esc(p.food.name)}</p>
+    <div class="qty-row">
+      <label class="sr-only" for="sim-qty-input">Quantité</label>
+      <input id="sim-qty-input" type="number" inputmode="decimal" min="0" step="any" value="${p.qty}">
+      <label class="sr-only" for="sim-unit-select">Unité</label>
+      <select id="sim-unit-select">${UNITS.map(u => `<option value="${u.id}" ${u.id === p.unit ? 'selected' : ''}>${u.long}</option>`).join('')}</select>
+      ${p.unit !== 'g' && per && !p.editEquiv ? `<button type="button" class="qty-grams" data-action="sim-edit-equiv">≈ ${fmtNum(p.qty * per, 0)} g</button>` : ''}
+    </div>
+    ${needEquiv ? `<div class="qty-equiv">
+      <label for="sim-equiv-input">Poids d’une ${UNIT_BY_ID[p.unit].long} de cet aliment :</label>
+      <input id="sim-equiv-input" type="number" inputmode="decimal" min="0" step="any" value="${per || ''}" placeholder="g"> g
+    </div>` : ''}
+    <div class="qty-actions">
+      <button type="button" class="btn" data-action="sim-cancel-pick">Annuler</button>
+      <button type="button" class="btn primary" data-action="sim-add">${p.editIndex !== undefined ? 'Mettre à jour' : 'Ajouter'}</button>
+    </div>`;
+}
+
+function simReadPicked() {
+  const p = state.simPicked;
+  const q = parseFloat(($('#sim-qty-input')?.value || '').replace(',', '.'));
+  if (isFinite(q)) p.qty = q;
+  const eq = $('#sim-equiv-input');
+  if (eq) {
+    const v = parseFloat((eq.value || '').replace(',', '.'));
+    if (v > 0) {
+      state.equivs[p.food.id] = { ...(state.equivs[p.food.id] || {}), [p.unit]: v };
+      db.set('equivs', state.equivs);
+      p.editEquiv = false;
+    }
+  }
+}
+
+function updateSimGrams() {
+  const p = state.simPicked;
+  const btn = $('#sim-qty .qty-grams');
+  const per = p && unitGrams(p.food, p.unit, state.equivs);
+  const q = parseFloat(($('#sim-qty-input')?.value || '').replace(',', '.'));
+  if (btn && per && q > 0) btn.textContent = `≈ ${fmtNum(q * per, 0)} g`;
+}
+
+function simChangeUnit(unit) {
+  simReadPicked();
+  const p = state.simPicked;
+  const prevGrams = p.qty * (unitGrams(p.food, p.unit, state.equivs) || 0);
+  p.unit = unit;
+  p.editEquiv = false;
+  if (unit === 'g' && prevGrams) p.qty = Math.round(prevGrams);
+  else if (unit !== 'g' && p.qty >= 10) p.qty = 1;
+  renderSimQty();
+  ($('#sim-equiv-input') || $('#sim-qty-input')).focus();
+}
+
+function simAddPicked() {
+  const p = state.simPicked;
+  if (!p) return;
+  simReadPicked();
+  const per = unitGrams(p.food, p.unit, state.equivs);
+  if (!(p.qty > 0)) { toast('Indiquez une quantité.'); return; }
+  if (!per) { toast(`Indiquez le poids d’une ${UNIT_BY_ID[p.unit].long}.`); renderSimQty(); $('#sim-equiv-input')?.focus(); return; }
+  const item = { foodId: p.food.id, qty: p.qty, unit: p.unit, grams: Math.round(p.qty * per * 10) / 10 };
+  if (p.editIndex !== undefined) state.sim.items[p.editIndex] = item;
+  else state.sim.items.push(item);
+  state.simPicked = null;
+  saveSim();
+  renderSimAll();
+  $('#sim-search').focus({ preventScroll: true });
+}
+
+function simCopyDay(k) {
+  if (!k) return;
+  state.sim.items = structuredClone(state.meals.filter(m => m.date === k).flatMap(m => m.items));
+  state.simPicked = null;
+  saveSim();
+  renderSimAll();
+  toast(`Journée copiée : ${formatDay(k)}`);
+}
+
+function renderSimResult() {
+  const el = $('#sim-result');
+  if (!el) return;
+  const items = state.sim.items;
+  if (!items.length) { el.innerHTML = ''; return; }
+  const N = Math.min(state.sim.days, state.settings.horizon);
+  const r = refs();
+  let base = [], endKey, firstKey;
+  if (state.sim.withHistory) { base = state.meals; firstKey = addDays(today(), 1); endKey = addDays(today(), N); }
+  else { firstKey = addDays(today(), -(N - 1)); endKey = today(); }
+  const synthetic = [];
+  for (let i = 0; i < N; i++) {
+    synthetic.push({ id: 'sim' + i, date: addDays(firstKey, i), type: 'diner', items, createdAt: '', updatedAt: '' });
+  }
+  const g = computeGauges(base.concat(synthetic), r, state.settings, endKey);
+  const t = itemsIntake(items).totals;
+  const counts = { carence: 0, insuffisant: 0, ok: 0, exces: 0 };
+  for (const n of NUTRIENTS) {
+    const st = g[n.id].status;
+    if (n.kind === 'max') { if (st === 'exces') counts.exces++; }
+    else counts[st] = (counts[st] || 0) + 1;
+  }
+  const cells = [['energie', 'Énergie', 'kcal'], ['proteines', 'Protéines', 'g'], ['glucides', 'Glucides', 'g'], ['lipides', 'Lipides', 'g']];
+  el.innerHTML = `
+    <h3>Une journée type apporte</h3>
+    <div class="summary sim-summary">${cells.map(([id, label, unit]) => {
+      const pct = r[id] ? t[id] / r[id] * 100 : 0;
+      return `<div class="sum-cell ${id === 'energie' ? 'energy' : ''}">
+        <p class="sum-label">${label}</p>
+        <p class="sum-value">${fmtNum(t[id], 0)}<small>${unit}</small></p>
+        <p class="sum-of">sur ${fmtNum(r[id], 0)}</p>
+        <div class="mini-bar"><i class="${id === 'energie' && pct > 110 ? 'over' : ''}" style="width:${Math.min(100, pct).toFixed(1)}%"></i></div>
+      </div>`;
+    }).join('')}</div>
+    <h3>Vos jauges au bout de ${N} jours</h3>
+    <p class="sim-counts">
+      <span><i class="dot ok"></i>${counts.ok} couvert${counts.ok > 1 ? 's' : ''}</span>
+      <span><i class="dot insuffisant"></i>${counts.insuffisant} insuffisant${counts.insuffisant > 1 ? 's' : ''}</span>
+      <span><i class="dot carence"></i>${counts.carence} en carence</span>
+      ${counts.exces ? `<span><i class="dot exces"></i>${counts.exces} en excès</span>` : ''}
+    </p>
+    ${SECTIONS.map(sec => `<div class="gauge-group"><h3>${sec.label}${sec.id === 'limites' ? ' <span>en % de la limite maximale</span>' : ''}</h3>
+      <div class="gauges">${NUTRIENTS.filter(n => n.section === sec.id).map(n => gaugeRow(n, g[n.id], false)).join('')}</div></div>`).join('')}
+    <p class="note">Même calcul que vos jauges (plafond, demi-vies, valeurs manquantes comptées pour zéro). Les vitamines et minéraux à demi-vie longue n’atteignent leur niveau final qu’après plusieurs semaines : comparez 30 et 60 jours.</p>`;
+}
+
 // ----- Aliments personnalisés
 
 function customFoodForm(cf) {
@@ -898,6 +1106,8 @@ function bindEvents() {
     }
   });
   s.addEventListener('input', e => {
+    if (e.target.id === 'sim-search') { runSearch(e.target.value, 'sim'); return; }
+    if (e.target.id === 'sim-qty-input' || e.target.id === 'sim-equiv-input') { updateSimGrams(); return; }
     if (e.target.id === 'ref-search') {
       e.target.form.ciqual_ref.value = '';
       runSearch(e.target.value, 'ref');
@@ -906,6 +1116,9 @@ function bindEvents() {
     if (e.target.closest('#settings-profile, #settings-calc')) onSettingsInput(e);
   });
   s.addEventListener('change', async e => {
+    if (e.target.id === 'sim-unit-select') { simChangeUnit(e.target.value); return; }
+    if (e.target.id === 'sim-history') { state.sim.withHistory = e.target.checked; saveSim(); renderSimResult(); return; }
+    if (e.target.id === 'sim-copy-day') { simCopyDay(e.target.value); e.target.value = ''; return; }
     if (e.target.name === 'theme') {
       state.settings.theme = e.target.value;
       applyTheme(state.settings.theme);
@@ -917,6 +1130,13 @@ function bindEvents() {
     if (e.target.id === 'import-food-file' && e.target.files[0]) $('#import-text').value = await e.target.files[0].text();
   });
   s.addEventListener('keydown', e => {
+    if (e.target.id === 'sim-search') {
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveSelection(1, 'sim'); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); moveSelection(-1, 'sim'); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (searchResults[searchIndex]) simPick(searchResults[searchIndex].id); }
+      return;
+    }
+    if (e.target.closest && e.target.closest('#sim-qty') && e.key === 'Enter') { e.preventDefault(); simAddPicked(); return; }
     if (e.target.id === 'ref-search') {
       if (e.key === 'ArrowDown') { e.preventDefault(); moveSelection(1, 'ref'); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); moveSelection(-1, 'ref'); }
@@ -951,7 +1171,11 @@ function pickRef(id) {
 function onClick(e) {
   const t = e.target.closest('[data-action]');
   if (!t) {
-    if (!e.target.closest('.search')) $('#search-results').hidden = true;
+    if (!e.target.closest('.search')) {
+      $('#search-results').hidden = true;
+      const sr = $('#sim-results');
+      if (sr) sr.hidden = true;
+    }
     return;
   }
   const a = t.dataset.action, id = t.dataset.id;
@@ -972,6 +1196,15 @@ function onClick(e) {
     case 'more-history': state.historyDays += 14; renderHistory(); break;
     case 'nutrient': openNutrient(id); break;
     case 'add-tip': addTipToDraft(id, parseFloat(t.dataset.grams)); break;
+    case 'open-sim': openSimulation(); break;
+    case 'pick-sim': simPick(id); break;
+    case 'sim-add': simAddPicked(); break;
+    case 'sim-cancel-pick': state.simPicked = null; renderSimQty(); break;
+    case 'sim-edit-equiv': simReadPicked(); state.simPicked.editEquiv = true; renderSimQty(); $('#sim-equiv-input')?.select(); break;
+    case 'sim-edit-item': simPick(state.sim.items[+t.dataset.index].foodId, +t.dataset.index); break;
+    case 'sim-remove': state.sim.items.splice(+t.dataset.index, 1); state.simPicked = null; saveSim(); renderSimAll(); break;
+    case 'sim-clear': state.sim.items = []; state.simPicked = null; saveSim(); renderSimAll(); break;
+    case 'sim-days': state.sim.days = +t.dataset.days; saveSim(); renderSimAll(); break;
     case 'open-settings': openSettings(); break;
     case 'close-sheet': closeSheet(); break;
     case 'reset-calc': state.settings = { ...structuredClone(DEFAULT_SETTINGS), theme: state.settings.theme }; db.set('settings', state.settings); renderGauges(); openSettings(); break;
