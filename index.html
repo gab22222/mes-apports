@@ -1,12 +1,15 @@
 <!doctype html>
-<html lang="fr">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Mes apports</title>
   <meta name="description" content="Journal alimentaire et suivi des apports en vitamines, minéraux et macronutriments.">
-  <meta name="theme-color" content="#F3F5F4" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0F1312" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#FFFFFF">
+  <script>
+    // Applique le thème mémorisé avant l'affichage, pour éviter un flash.
+    try { var t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) {}
+  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
