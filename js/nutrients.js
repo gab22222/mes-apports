@@ -138,3 +138,20 @@ export const REFERENCE_NOTES = {
   ags: 'Limite : 12 % de l’énergie.',
   vitK: 'Vitamine K1, plus K2 lorsqu’elle est connue.',
 };
+
+// Aliments conseillés, affichés dans le détail d'un nutriment.
+// code : code Ciqual ; grams : quantité suggérée ; freq : fréquence conseillée (affichée telle quelle).
+export const NUTRIENT_TIPS = {
+  vitA: [
+    {
+      title: 'Pour refaire les réserves',
+      foods: [{ code: '26142', label: 'Foie de morue en conserve', grams: 30, freq: 'une tartine (30 g) par semaine' }],
+      note: 'Très riche en vitamine A (et en vitamine D) : ne pas en abuser. Au-delà d’environ 70 g par jour, on dépasse la limite de sécurité de 3 000 µg. Déconseillé pendant la grossesse.',
+    },
+    {
+      title: 'Pour les maintenir',
+      foods: [{ code: '20009', label: 'Carotte crue', grams: 100, freq: 'une carotte (100 g) tous les deux jours' }],
+      note: 'Avec un filet d’huile : la vitamine A est mieux absorbée avec un peu de matière grasse.',
+    },
+  ],
+};

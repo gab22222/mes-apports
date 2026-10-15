@@ -1,11 +1,11 @@
 import { db, uid } from './db.js';
 import {
   NUTRIENTS, NUTRIENT_BY_ID, SECTIONS, HALF_LIFE_CATS, DEFAULT_SETTINGS, ACTIVITY_LEVELS, THEMES,
-  references, REFERENCE_NOTES,
+  references, REFERENCE_NOTES, NUTRIENT_TIPS,
 } from './nutrients.js';
 import {
   foods, loadCiqual, registerCustomFood, unregisterFood, search, shortName, UNITS, UNIT_BY_ID,
-  unitGrams, fmtNum, displayValue,
+  unitGrams, fmtNum, displayValue, readValue,
 } from './foods.js';
 import {
   dateKey, parseKey, daysBetween, itemsIntake, computeGauges, STATUS_LABEL, topSources, mealSignature,
@@ -588,10 +588,43 @@ function openNutrient(id) {
     </dl>
     ${REFERENCE_NOTES[id] ? `<p class="note">${REFERENCE_NOTES[id]}</p>` : ''}
     ${d.missingShare > 0.25 ? `<p class="note">Une partie des aliments consommés n’a pas de valeur connue pour ce nutriment dans Ciqual. Elle est comptée comme zéro : la jauge est probablement sous-estimée.</p>` : ''}
+    ${tipsHtml(id, d.ref)}
     <h3>Principales sources sur 14 jours</h3>
     ${sources.length ? `<dl class="detail-grid">${sources.map(s => `<div><dt>${esc(shortName(s.food))}</dt><dd>${Math.round(s.share * 100)} %</dd></div>`).join('')}</dl>`
       : '<p class="note">Aucun apport enregistré sur cette période.</p>'}
   `);
+}
+
+// Aliments conseillés pour un nutriment, avec l'apport calculé depuis Ciqual.
+function tipsHtml(id, ref) {
+  const groups = NUTRIENT_TIPS[id];
+  if (!groups) return '';
+  const unit = NUTRIENT_BY_ID[id].unit;
+  return groups.map(g => `
+    <h3>${esc(g.title)}</h3>
+    <ul class="tips">${g.foods.map(t => {
+      const food = foods.get('c:' + t.code);
+      if (!food) return '';
+      const amount = readValue(food.values[id], id).v * t.grams / 100;
+      return `<li>
+        <div class="tip-main">
+          <strong>${esc(t.label)}</strong>
+          <span>${esc(t.freq)}</span>
+          <small>${fmtNum(t.grams, 0)} g ≈ ${fmtNum(amount, 0)} ${unit}, soit ${Math.round(amount / ref * 100)} % de la référence du jour</small>
+        </div>
+        <button type="button" class="btn small" data-action="add-tip" data-id="${esc(food.id)}" data-grams="${t.grams}">Ajouter</button>
+      </li>`;
+    }).join('')}</ul>
+    ${g.note ? `<p class="note">${esc(g.note)}</p>` : ''}`).join('');
+}
+
+function addTipToDraft(foodId, grams) {
+  state.draft.items.push({ foodId, qty: grams, unit: 'g', grams });
+  saveDraft();
+  closeSheet();
+  renderEntry();
+  $('#entry').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast('Ajouté au repas en cours : ajustez si besoin, puis enregistrez');
 }
 
 // ----- Aliments personnalisés
@@ -938,6 +971,7 @@ function onClick(e) {
     case 'delete-meal': deleteMeal(t, id); break;
     case 'more-history': state.historyDays += 14; renderHistory(); break;
     case 'nutrient': openNutrient(id); break;
+    case 'add-tip': addTipToDraft(id, parseFloat(t.dataset.grams)); break;
     case 'open-settings': openSettings(); break;
     case 'close-sheet': closeSheet(); break;
     case 'reset-calc': state.settings = { ...structuredClone(DEFAULT_SETTINGS), theme: state.settings.theme }; db.set('settings', state.settings); renderGauges(); openSettings(); break;

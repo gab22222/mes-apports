@@ -1,13 +1,14 @@
 :root {
-  --bg: #F3F5F4;
-  --surface: #FFFFFF;
-  --surface-2: #F7F9F8;
-  --ink: #18201D;
-  --muted: #66706B;
-  --faint: #9AA39F;
-  --line: #E1E6E3;
-  --track: #E9EDEB;
-  --accent: #18201D;
+  /* Thème clair (par défaut) : fond blanc, texte noir */
+  --bg: #FFFFFF;
+  --surface: #F4F4F5;
+  --surface-2: #FFFFFF;
+  --ink: #000000;
+  --muted: #5C5F63;
+  --faint: #9A9DA1;
+  --line: #E2E3E6;
+  --track: #DEDFE2;
+  --accent: #000000;
   --on-accent: #FFFFFF;
   --carence: #D9473F;
   --insuffisant: #E08A26;
@@ -22,8 +23,9 @@
   color-scheme: light;
 }
 
+/* Thème automatique : suit le réglage clair/sombre du système */
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root[data-theme="auto"] {
     --bg: #0F1312;
     --surface: #181D1B;
     --surface-2: #1E2422;
@@ -318,3 +320,13 @@ details summary { cursor: pointer; font-size: 15px; padding: 8px 0; }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }
+
+/* ---------- Aliments conseillés ---------- */
+.tips { list-style: none; margin: 0; padding: 4px 14px; background: var(--surface); border-radius: var(--radius-m); }
+.tips li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.tips li:last-child { border-bottom: 0; }
+.tip-main { flex: 1; min-width: 0; }
+.tip-main strong { display: block; font-size: 15px; font-weight: 600; }
+.tip-main span { display: block; font-size: 14px; }
+.tip-main small { display: block; font-size: 12px; color: var(--muted); margin-top: 2px; }
+.tips .btn { flex: none; background: var(--bg); }
