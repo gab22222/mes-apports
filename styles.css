@@ -103,6 +103,8 @@ h2 { margin: 0; font: 650 20px/1.25 var(--display); letter-spacing: -0.01em; }
 }
 .weekly-add .btn { flex: none; }
 
+.sim-shortcut { margin: -8px 0 12px; }
+
 /* ---------- Résumé du jour ---------- */
 .summary {
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
