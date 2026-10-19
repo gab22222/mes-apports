@@ -32,11 +32,11 @@ function run(store, mode, fn) {
   }));
 }
 
-export const db = {
-  all: store => run(store, 'readonly', s => s.getAll()),
+// Écritures sans notification : utilisées par la synchronisation pour appliquer
+// les données reçues sans se redéclencher elle-même.
+export const rawDb = {
   put: (store, obj) => run(store, 'readwrite', s => s.put(obj)),
   del: (store, id) => run(store, 'readwrite', s => s.delete(id)),
-  get: key => run('kv', 'readonly', s => s.get(key)),
   set: (key, value) => run('kv', 'readwrite', s => s.put(value, key)),
   async putMany(store, list) {
     const d = await open();
@@ -47,6 +47,25 @@ export const db = {
       tx.oncomplete = resolve;
       tx.onerror = () => reject(tx.error);
     });
+  },
+};
+
+// Chaque écriture de l'app prévient les abonnés (la synchronisation).
+const listeners = new Set();
+export function onDbChange(fn) { listeners.add(fn); }
+function notify(kind, store, key) {
+  listeners.forEach(fn => { try { fn(kind, store, key); } catch (e) { console.error(e); } });
+}
+
+export const db = {
+  all: store => run(store, 'readonly', s => s.getAll()),
+  put: (store, obj) => rawDb.put(store, obj).then(r => { notify('put', store, obj.id); return r; }),
+  del: (store, id) => rawDb.del(store, id).then(r => { notify('del', store, id); return r; }),
+  get: key => run('kv', 'readonly', s => s.get(key)),
+  set: (key, value) => rawDb.set(key, value).then(r => { notify('set', 'kv', key); return r; }),
+  async putMany(store, list) {
+    await rawDb.putMany(store, list);
+    if (list.length) notify('putMany', store);
   },
   async clearAll() {
     for (const store of ['meals', 'foods', 'kv']) await run(store, 'readwrite', s => s.clear());

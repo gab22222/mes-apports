@@ -1,10 +1,10 @@
 // Service worker : met l'app en cache pour qu'elle fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour des fichiers.
-const VERSION = 'mes-apports-v6';
+const VERSION = 'mes-apports-v7';
 const FILES = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'posture.html', 'tennis.html', 'nav.css', 'nav.js',
-  'js/app.js', 'js/db.js', 'js/foods.js', 'js/model.js', 'js/nutrients.js',
+  'js/app.js', 'js/db.js', 'js/foods.js', 'js/model.js', 'js/nutrients.js', 'js/sync.js',
   'data/ciqual.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
 ];
 
@@ -19,7 +19,8 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
+  // Les appels à GitHub (synchronisation) passent toujours par le réseau, sans cache.
+  if (e.request.method !== 'GET' || new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
     caches.match(e.request, { ignoreSearch: true }).then(hit => hit || fetch(e.request).then(res => {
       if (res.ok && new URL(e.request.url).origin === location.origin) {

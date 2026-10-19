@@ -10,6 +10,7 @@ import {
 import {
   dateKey, parseKey, daysBetween, addDays, itemsIntake, computeGauges, STATUS_LABEL, topSources, mealSignature,
 } from './model.js';
+import { startSync, syncNow, syncStatus, connectSync, disconnectSync } from './sync.js';
 
 const MEAL_TYPES = [
   { id: 'petit-dejeuner', label: 'Petit-déjeuner' },
@@ -69,6 +70,23 @@ async function init() {
   bindEvents();
   renderAll();
   if (!state.profile) openProfileSheet(true);
+  startSync({ onApplied: reloadFromDb, onStatus: onSyncStatus }).catch(err => console.error(err));
+}
+
+// Relit les données après l'arrivée de modifications synchronisées depuis un autre appareil.
+async function reloadFromDb() {
+  const [meals, customFoods, equivs, profile, settings] = await Promise.all([
+    db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'),
+  ]);
+  const ids = new Set((customFoods || []).map(c => c.id));
+  state.customFoods.filter(c => !ids.has(c.id)).forEach(c => unregisterFood(c.id));
+  state.meals = meals || [];
+  state.customFoods = customFoods || [];
+  state.customFoods.forEach(registerCustomFood);
+  state.equivs = equivs || {};
+  if (profile) state.profile = profile;
+  state.settings = mergeSettings(settings);
+  renderAll();
 }
 
 function mergeSettings(s) {
@@ -152,7 +170,13 @@ function renderBanners() {
     out.push(`<div class="banner"><p><strong>Ajoutez l’app à l’écran d’accueil</strong> pour que Safari conserve vos données : touchez <em>Partager</em> puis <em>Sur l’écran d’accueil</em>.</p>
       <button type="button" class="link-btn" data-action="dismiss-install">Fermer</button></div>`);
   }
-  if (state.meals.length) {
+  const sync = syncStatus();
+  if (sync.serious) {
+    out.push(`<div class="banner"><p><strong>Synchronisation en pause.</strong> ${esc(sync.message)}</p>
+      <button type="button" class="btn small" data-action="open-settings">Réglages</button></div>`);
+  }
+  const syncedRecently = sync.enabled && sync.lastSync && daysBetween(sync.lastSync.slice(0, 10), today()) < 7;
+  if (state.meals.length && !syncedRecently) {
     const last = state.meta.lastExport;
     const days = last ? daysBetween(last.slice(0, 10), today()) : daysBetween(state.meta.firstLaunch || today(), today());
     const snoozed = state.meta.backupSnooze && state.meta.backupSnooze >= today();
@@ -512,7 +536,6 @@ function openProfileSheet(first) {
 function openSettings() {
   const s = state.settings;
   const p = state.profile;
-  const lastExport = state.meta.lastExport ? new Date(state.meta.lastExport).toLocaleDateString('fr-FR') : 'jamais';
   openSheet(`
     <div class="sheet-head"><h2>Réglages</h2><button type="button" class="link-btn" data-action="close-sheet">Fermer</button></div>
 
@@ -545,13 +568,104 @@ function openSettings() {
       <button type="button" class="btn" data-action="import-food">Importer un aliment</button>
     </div>
 
+    <h3>Synchronisation</h3>
+    <div id="sync-section">${syncSectionHtml()}</div>
+
     <h3>Données</h3>
-    <p class="note">Vos données restent sur cet appareil. Dernière sauvegarde : ${lastExport}. Pour passer du Mac à l’iPhone, exportez sur l’un puis importez sur l’autre : les repas sont fusionnés.</p>
+    <p class="note" id="data-note">${dataNoteText()}</p>
     <div class="stack-actions">
       <button type="button" class="btn primary" data-action="export">Exporter une sauvegarde</button>
       <label class="btn" style="text-align:center">Importer une sauvegarde<input type="file" accept="application/json,.json" id="backup-file" hidden></label>
       <button type="button" class="btn danger" data-action="wipe">Effacer toutes les données</button>
     </div>`);
+}
+
+function dataNoteText() {
+  const lastExport = state.meta.lastExport ? new Date(state.meta.lastExport).toLocaleDateString('fr-FR') : 'jamais';
+  return syncStatus().enabled
+    ? `Vos données sont aussi synchronisées, chiffrées, avec GitHub. Une sauvegarde exportée reste utile comme copie de secours. Dernière sauvegarde : ${lastExport}.`
+    : `Vos données restent sur cet appareil. Dernière sauvegarde : ${lastExport}. Pour passer du Mac à l’iPhone, exportez sur l’un puis importez sur l’autre : les repas sont fusionnés.`;
+}
+
+// ----- Synchronisation
+
+function syncStateLabel(st) {
+  const when = st.lastSync ? new Date(st.lastSync) : null;
+  const at = when && (dateKey(when) === today()
+    ? `aujourd’hui à ${when.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`
+    : `le ${when.toLocaleDateString('fr-FR')}`);
+  switch (st.state) {
+    case 'syncing': return 'Synchronisation…';
+    case 'ok': return `À jour, ${at}`;
+    case 'offline': return `Hors connexion${at ? ` · dernière synchro ${at}` : ''}`;
+    case 'error': return st.message;
+    default: return at ? `Dernière synchro ${at}` : 'En attente';
+  }
+}
+
+function syncSectionHtml() {
+  const st = syncStatus();
+  if (st.enabled) {
+    return `<div class="form-group">
+      <div class="field"><span>Dépôt</span><span class="muted">${esc(st.repo)}</span></div>
+      <div class="field"><span>État</span><span class="sync-state${st.state === 'error' ? ' is-error' : ''}">${esc(syncStateLabel(st))}</span></div>
+    </div>
+    <p class="note">La synchronisation se fait à l’ouverture de l’app, quelques secondes après chaque modification et quand vous la quittez.</p>
+    <div class="sheet-actions" style="justify-content:flex-start">
+      <button type="button" class="btn" data-action="sync-now">Synchroniser maintenant</button>
+      <button type="button" class="btn danger" data-action="sync-disconnect">Déconnecter cet appareil</button>
+    </div>`;
+  }
+  return `<p class="note">Retrouvez vos repas, aliments et réglages sur tous vos appareils grâce à un dépôt GitHub privé. Tout est chiffré sur l’appareil avec votre phrase secrète avant l’envoi : GitHub ne voit que des données illisibles.</p>
+    <form id="sync-form" autocomplete="off">
+      <div class="form-group">
+        <div class="field stack"><span>Dépôt GitHub privé</span>
+          <input name="repo" placeholder="utilisateur/health-app-donnees" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <div class="field stack"><span>Clé d’accès GitHub<small>Elle commence par github_pat_</small></span>
+          <input name="token" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <div class="field stack"><span>Phrase secrète<small>10 caractères minimum, la même sur tous vos appareils</small></span>
+          <input name="pass" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+        <div class="field stack"><span>Confirmer la phrase secrète</span>
+          <input name="pass2" type="password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      </div>
+      <p class="note">Notez votre phrase secrète en lieu sûr : sans elle, la copie en ligne est illisible, même pour vous. Si vous l’oubliez, déconnectez vos appareils et recommencez avec un nouveau dépôt : vos données locales restent intactes.</p>
+      <div class="sheet-actions"><button class="btn primary" type="submit">Activer la synchronisation</button></div>
+    </form>`;
+}
+
+function onSyncStatus() {
+  renderBanners();
+  const box = $('#sync-section');
+  // Ne pas effacer le formulaire en cours de saisie.
+  if (box && !box.querySelector('#sync-form')) box.innerHTML = syncSectionHtml();
+  const note = $('#data-note');
+  if (note) note.textContent = dataNoteText();
+}
+
+async function submitSyncForm(form) {
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'Connexion…';
+  try {
+    const st = await connectSync({
+      repo: form.repo.value, token: form.token.value, passphrase: form.pass.value, confirm: form.pass2.value,
+    });
+    $('#sync-section').innerHTML = syncSectionHtml();
+    onSyncStatus();
+    toast(st.state === 'ok' ? 'Synchronisation activée' : `Synchronisation activée, mais : ${syncStateLabel(st)}`, 5000);
+  } catch (err) {
+    if (!err.code) console.error(err);
+    toast(err.message || 'Connexion impossible.', 7000);
+    btn.disabled = false;
+    btn.textContent = 'Activer la synchronisation';
+  }
+}
+
+async function disconnectFromSync(btn) {
+  if (btn.dataset.confirm !== '1') { btn.dataset.confirm = '1'; btn.textContent = 'Confirmer la déconnexion'; return; }
+  await disconnectSync();
+  onSyncStatus();
+  toast('Appareil déconnecté : ses données restent intactes');
 }
 
 async function onSettingsInput(e) {
@@ -1103,6 +1217,8 @@ function bindEvents() {
       saveCustomFood(e.target);
     } else if (e.target.id === 'import-food-form') {
       importFoods($('#import-text').value);
+    } else if (e.target.id === 'sync-form') {
+      submitSyncForm(e.target);
     }
   });
   s.addEventListener('input', e => {
@@ -1213,6 +1329,8 @@ function onClick(e) {
     case 'delete-food': deleteCustomFood(t, id); break;
     case 'import-food': openImportFood(); break;
     case 'export': exportData(); break;
+    case 'sync-now': syncNow(); break;
+    case 'sync-disconnect': disconnectFromSync(t); break;
     case 'wipe': wipe(t); break;
     case 'dismiss-install': state.meta.installHintDismissed = true; saveMeta(); renderBanners(); break;
     case 'snooze-backup': state.meta.backupSnooze = dateKey(new Date(Date.now() + 3 * 86400000)); saveMeta(); renderBanners(); break;
