@@ -5,7 +5,8 @@
 // La phrase secrète n'est jamais enregistrée, seule la clé dérivée (non exportable) l'est.
 //
 // Un fichier par mois de repas plus un fichier commun (profil, réglages, aliments,
-// suppressions) : chaque envoi reste petit et l'historique du dépôt grossit peu.
+// aliments de la semaine, suppressions) : chaque envoi reste petit et l'historique
+// du dépôt grossit peu.
 //
 // Déroulé d'une synchronisation : lister les fichiers en ligne, télécharger ceux qui ont
 // changé, les intégrer aux données locales (le plus récent gagne, suppressions comprises),
@@ -22,6 +23,8 @@ const MAX_ATTEMPTS = 4;
 const CONFIG_KEY = 'sync-config';
 const LOCAL_KEY = 'sync-local';
 const CACHE_KEY = 'sync-cache';
+// Listes synchronisées élément par élément (avec suivi des suppressions).
+const RECORD_STORES = ['meals', 'foods', 'weekly'];
 // Clés propres à chaque appareil : jamais synchronisées.
 const DEVICE_KEYS = new Set(['draft', 'sim', 'meta']);
 // Erreurs qui demandent une action de l'utilisateur (les autres se règlent seules).
@@ -199,12 +202,13 @@ export function collectRemote(files) {
   return {
     meals: Object.entries(files).filter(([p]) => p !== COMMON_PATH).flatMap(([, f]) => f.doc.meals || []),
     foods: common.foods || [],
+    weekly: common.weekly || [],
     equivs: common.equivs || {},
     profile: common.profile || null,
     profileAt: common.profileAt || '',
     settings: common.settings || null,
     settingsAt: common.settingsAt || '',
-    deleted: { meals: common.deleted?.meals || {}, foods: common.deleted?.foods || {} },
+    deleted: Object.fromEntries(RECORD_STORES.map(st => [st, common.deleted?.[st] || {}])),
   };
 }
 
@@ -226,17 +230,13 @@ function planRecords(local, remote, deleted) {
 }
 
 // Ce qu'il faut changer localement pour intégrer les données en ligne.
-// local : { meals, foods, equivs, profile, settings } ; sync : { stamps, deleted, firstSyncDone }.
+// local : { meals, foods, weekly, equivs, profile, settings } ; sync : { stamps, deleted, firstSyncDone }.
 export function planApply(local, remote, sync) {
-  const deleted = {
-    meals: latest(sync.deleted.meals, remote.deleted.meals),
-    foods: latest(sync.deleted.foods, remote.deleted.foods),
-  };
-  const meals = planRecords(local.meals, remote.meals, deleted.meals);
-  const foods = planRecords(local.foods, remote.foods, deleted.foods);
+  const deleted = Object.fromEntries(RECORD_STORES.map(st => [st, latest(sync.deleted[st], remote.deleted[st])]));
   const stamps = { ...sync.stamps };
   const first = !sync.firstSyncDone;
-  const plan = { meals, foods, deleted, stamps };
+  const plan = { deleted, stamps };
+  for (const st of RECORD_STORES) plan[st] = planRecords(local[st] || [], remote[st] || [], deleted[st]);
 
   // Profil et réglages : la version la plus récente gagne. À la toute première
   // synchronisation d'un appareil, c'est la version en ligne qui est reprise.
@@ -268,6 +268,7 @@ export function buildFiles(local, sync, existingPaths = []) {
     settings: stripTheme(local.settings), settingsAt: sync.stamps.settings || '',
     equivs: local.equivs || {},
     foods: [...local.foods].sort(byId),
+    weekly: [...(local.weekly || [])].sort(byId),
     deleted: sync.deleted,
   });
   // Un mois qui n'a plus de repas est vidé plutôt que supprimé.
@@ -300,7 +301,7 @@ const S = {
   onStatus: () => {},
 };
 
-const freshLocal = () => ({ stamps: {}, deleted: { meals: {}, foods: {} }, dirty: 0, lastSync: null, firstSyncDone: false });
+const freshLocal = () => ({ stamps: {}, deleted: {}, dirty: 0, lastSync: null, firstSyncDone: false });
 const saveLocal = () => rawDb.set(LOCAL_KEY, S.local);
 
 function setStatus(st) {
@@ -321,7 +322,7 @@ export function syncStatus() {
 function onChange(kind, store, key) {
   if (store === 'kv' && (DEVICE_KEYS.has(key) || String(key).startsWith('sync-'))) return;
   const now = new Date().toISOString();
-  if (kind === 'del' && (store === 'meals' || store === 'foods')) S.local.deleted[store][key] = now;
+  if (kind === 'del' && RECORD_STORES.includes(store)) S.local.deleted[store][key] = now;
   if (kind === 'set' && (key === 'profile' || key === 'settings')) S.local.stamps[key] = now;
   S.local.dirty++;
   saveLocal();
@@ -342,6 +343,7 @@ export async function startSync({ onApplied, onStatus } = {}) {
   const [cfg, local, cache] = await Promise.all([db.get(CONFIG_KEY), db.get(LOCAL_KEY), db.get(CACHE_KEY)]);
   S.cfg = cfg || null;
   S.local = { ...freshLocal(), ...(local || {}) };
+  for (const st of RECORD_STORES) S.local.deleted[st] ||= {};
   S.cache = cache || {};
   onDbChange(onChange);
 
@@ -392,10 +394,13 @@ async function runOnce() {
 }
 
 async function readLocal() {
-  const [meals, foods, equivs, profile, settings] = await Promise.all([
-    db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'),
+  const [meals, foods, weekly, equivs, profile, settings] = await Promise.all([
+    db.all('meals'), db.all('foods'), db.all('weekly'), db.get('equivs'), db.get('profile'), db.get('settings'),
   ]);
-  return { meals: meals || [], foods: foods || [], equivs: equivs || {}, profile: profile || null, settings: settings || null };
+  return {
+    meals: meals || [], foods: foods || [], weekly: weekly || [],
+    equivs: equivs || {}, profile: profile || null, settings: settings || null,
+  };
 }
 
 async function syncCore() {
@@ -419,7 +424,8 @@ async function syncCore() {
   // 2. Les intégrer aux données locales.
   const plan = planApply(await readLocal(), collectRemote(S.cache), S.local);
   let changed = false;
-  for (const [store, p] of [['meals', plan.meals], ['foods', plan.foods]]) {
+  for (const store of RECORD_STORES) {
+    const p = plan[store];
     for (const id of p.del) { await rawDb.del(store, id); changed = true; }
     if (p.put.length) { await rawDb.putMany(store, p.put); changed = true; }
   }

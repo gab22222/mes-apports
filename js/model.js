@@ -13,6 +13,21 @@ export function parseKey(k) {
   return new Date(y, m - 1, d);
 }
 
+// Début de la semaine en cours : le lundi à 1 h du matin le plus récent.
+export function weekStart(now = new Date()) {
+  const d = new Date(now);
+  d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+  d.setHours(1, 0, 0, 0);
+  if (d > now) d.setDate(d.getDate() - 7);
+  return d;
+}
+
+export function nextWeekStart(now = new Date()) {
+  const d = weekStart(now);
+  d.setDate(d.getDate() + 7);
+  return d;
+}
+
 export function addDays(k, n) {
   const d = parseKey(k);
   d.setDate(d.getDate() + n);

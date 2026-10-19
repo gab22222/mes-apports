@@ -1,6 +1,6 @@
 // Service worker : met l'app en cache pour qu'elle fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour des fichiers.
-const VERSION = 'mes-apports-v7';
+const VERSION = 'mes-apports-v8';
 const FILES = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'posture.html', 'tennis.html', 'nav.css', 'nav.js',
@@ -9,7 +9,10 @@ const FILES = [
 ];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' : toujours les fichiers frais, jamais un mélange de versions venu du cache HTTP.
+  e.waitUntil(caches.open(VERSION)
+    .then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' }))))
+    .then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {

@@ -9,6 +9,7 @@ import {
 } from './foods.js';
 import {
   dateKey, parseKey, daysBetween, addDays, itemsIntake, computeGauges, STATUS_LABEL, topSources, mealSignature,
+  weekStart, nextWeekStart,
 } from './model.js';
 import { startSync, syncNow, syncStatus, connectSync, disconnectSync } from './sync.js';
 
@@ -28,6 +29,7 @@ const FOOD_FORMAT = 'mes-apports-aliment';
 const state = {
   meals: [],
   customFoods: [],
+  weekly: [],          // aliments à manger chaque semaine : { id, name, checkedAt, createdAt, updatedAt }
   equivs: {},
   profile: null,
   settings: structuredClone(DEFAULT_SETTINGS),
@@ -51,11 +53,12 @@ async function init() {
   registerServiceWorker();
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* facultatif */ }
 
-  const [meals, customFoods, equivs, profile, settings, meta, draft, sim] = await Promise.all([
+  const [meals, customFoods, equivs, profile, settings, meta, draft, sim, weekly] = await Promise.all([
     db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'), db.get('meta'), db.get('draft'), db.get('sim'),
-    loadCiqual(),
+    db.all('weekly'), loadCiqual(),
   ]);
   state.meals = meals || [];
+  state.weekly = weekly || [];
   state.customFoods = customFoods || [];
   state.equivs = equivs || {};
   state.profile = profile || null;
@@ -75,9 +78,10 @@ async function init() {
 
 // Relit les données après l'arrivée de modifications synchronisées depuis un autre appareil.
 async function reloadFromDb() {
-  const [meals, customFoods, equivs, profile, settings] = await Promise.all([
-    db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'),
+  const [meals, customFoods, equivs, profile, settings, weekly] = await Promise.all([
+    db.all('meals'), db.all('foods'), db.get('equivs'), db.get('profile'), db.get('settings'), db.all('weekly'),
   ]);
+  state.weekly = weekly || [];
   const ids = new Set((customFoods || []).map(c => c.id));
   state.customFoods.filter(c => !ids.has(c.id)).forEach(c => unregisterFood(c.id));
   state.meals = meals || [];
@@ -126,6 +130,7 @@ function refreshUsage() {
 function renderAll() {
   refreshUsage();
   renderHeader();
+  renderWeekly();
   renderBanners();
   renderEntry();
   renderToday();
@@ -427,6 +432,66 @@ function addPicked() {
   saveDraft();
   renderEntry();
   $('#food-search').focus({ preventScroll: true });
+}
+
+// ---------------------------------------------------------------- Aliments de la semaine
+
+// Coché = mangé depuis le dernier lundi 1 h : rien à effacer, la remise à zéro est automatique.
+const isEaten = it => !!it.checkedAt && new Date(it.checkedAt) >= weekStart();
+
+function renderWeekly() {
+  const list = [...state.weekly].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const eaten = list.filter(isEaten).length;
+  $('#weekly-count').textContent = list.length ? `${eaten}/${list.length} mangé${eaten > 1 ? 's' : ''}` : '';
+  $('#weekly-list').innerHTML = list.map(it => {
+    const done = isEaten(it);
+    return `<li class="${done ? 'eaten' : ''}">
+      <label><input type="checkbox" data-id="${esc(it.id)}" ${done ? 'checked' : ''}><span>${esc(it.name)}</span></label>
+      <button type="button" class="remove-btn" data-action="weekly-remove" data-id="${esc(it.id)}" aria-label="Retirer ${esc(it.name)} de la liste">×</button>
+    </li>`;
+  }).join('');
+  scheduleWeeklyReset();
+}
+
+// Rafraîchit l'affichage au moment de la remise à zéro si l'app est ouverte.
+let weeklyTimer;
+function scheduleWeeklyReset() {
+  clearTimeout(weeklyTimer);
+  weeklyTimer = setTimeout(renderWeekly, nextWeekStart() - Date.now() + 1000);
+}
+
+async function addWeekly(form) {
+  const name = form.name.value.trim().replace(/\s+/g, ' ');
+  if (!name) return;
+  if (state.weekly.some(it => it.name.toLocaleLowerCase('fr') === name.toLocaleLowerCase('fr'))) {
+    toast(`« ${name} » est déjà dans la liste`);
+    return;
+  }
+  const now = new Date().toISOString();
+  const item = { id: uid(), name, checkedAt: null, createdAt: now, updatedAt: now };
+  await db.put('weekly', item);
+  state.weekly.push(item);
+  form.name.value = '';
+  renderWeekly();
+}
+
+async function toggleWeekly(id, checked) {
+  const it = state.weekly.find(x => x.id === id);
+  if (!it) return;
+  const now = new Date().toISOString();
+  const next = { ...it, checkedAt: checked ? now : null, updatedAt: now };
+  await db.put('weekly', next);
+  state.weekly = state.weekly.map(x => (x.id === id ? next : x));
+  renderWeekly();
+}
+
+async function removeWeekly(id) {
+  const it = state.weekly.find(x => x.id === id);
+  if (!it) return;
+  await db.del('weekly', id);
+  state.weekly = state.weekly.filter(x => x.id !== id);
+  renderWeekly();
+  toast(`« ${it.name} » retiré de la liste`);
 }
 
 // ---------------------------------------------------------------- Repas
@@ -1094,7 +1159,7 @@ async function exportData() {
   const data = {
     format: BACKUP_FORMAT, version: 1, exportedAt: new Date().toISOString(),
     profile: state.profile, settings: state.settings, meals: state.meals,
-    customFoods: state.customFoods, equivs: state.equivs,
+    customFoods: state.customFoods, equivs: state.equivs, weekly: state.weekly,
   };
   const name = `mes-apports-${today()}.json`;
   const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
@@ -1135,6 +1200,10 @@ async function importBackup(file) {
   const foodIds = new Map(state.customFoods.map(c => [c.id, c]));
   const foodsToWrite = (data.customFoods || []).filter(c => !foodIds.has(c.id) || (c.updatedAt || '') > (foodIds.get(c.id).updatedAt || ''));
   await db.putMany('foods', foodsToWrite);
+  const weeklyIds = new Map(state.weekly.map(w => [w.id, w]));
+  const weeklyToWrite = (data.weekly || []).filter(w => !weeklyIds.has(w.id) || (w.updatedAt || '') > (weeklyIds.get(w.id).updatedAt || ''));
+  await db.putMany('weekly', weeklyToWrite);
+  state.weekly = await db.all('weekly');
   state.equivs = { ...(data.equivs || {}), ...state.equivs };
   await db.set('equivs', state.equivs);
   if (!state.profile && data.profile) { state.profile = data.profile; await db.set('profile', data.profile); }
@@ -1170,6 +1239,11 @@ function bindEvents() {
     $('#search-results').hidden = true;
   }, 200));
   searchInput.addEventListener('focus', () => { if (searchInput.value) runSearch(searchInput.value); });
+
+  $('#weekly-form').addEventListener('submit', e => { e.preventDefault(); addWeekly(e.target); });
+  $('#weekly-list').addEventListener('change', e => {
+    if (e.target.matches('input[type="checkbox"]')) toggleWeekly(e.target.dataset.id, e.target.checked);
+  });
 
   $('#meal-date').addEventListener('change', e => { state.draft.date = e.target.value || today(); saveDraft(); });
 
@@ -1262,6 +1336,7 @@ function bindEvents() {
 
   window.addEventListener('focus', () => { if (state.renderedDay && state.renderedDay !== today()) renderAll(); state.renderedDay = today(); });
   document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) renderWeekly(); // la remise à zéro du lundi a pu passer pendant que l'app dormait
     if (!document.hidden && state.renderedDay !== today()) {
       if (!state.draft.items.length && !state.draft.id) state.draft = newDraft();
       renderAll();
@@ -1330,6 +1405,7 @@ function onClick(e) {
     case 'import-food': openImportFood(); break;
     case 'export': exportData(); break;
     case 'sync-now': syncNow(); break;
+    case 'weekly-remove': removeWeekly(id); break;
     case 'sync-disconnect': disconnectFromSync(t); break;
     case 'wipe': wipe(t); break;
     case 'dismiss-install': state.meta.installHintDismissed = true; saveMeta(); renderBanners(); break;

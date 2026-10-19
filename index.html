@@ -33,6 +33,22 @@
       </button>
     </header>
 
+    <section id="weekly" class="weekly" aria-labelledby="weekly-title">
+      <div class="block-head">
+        <h2 id="weekly-title">Aliments de la semaine à manger</h2>
+        <span class="muted weekly-count" id="weekly-count"></span>
+      </div>
+      <div class="panel">
+        <ul class="weekly-list" id="weekly-list"></ul>
+        <form id="weekly-form" class="weekly-add" autocomplete="off">
+          <label for="weekly-name" class="sr-only">Aliment à ajouter</label>
+          <input id="weekly-name" name="name" maxlength="60" placeholder="Saumon, brocoli…" enterkeyhint="done">
+          <button class="btn small" type="submit">Ajouter</button>
+        </form>
+        <p class="note weekly-note">Cochez un aliment quand vous l’avez mangé. Les coches sont remises à zéro chaque lundi à 1 h ; la liste, elle, reste.</p>
+      </div>
+    </section>
+
     <section id="summary" class="summary" aria-label="Résumé du jour"></section>
 
     <div id="banners"></div>
