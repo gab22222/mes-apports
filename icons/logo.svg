@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Health App : balle de tennis (tête), colonne droite (posture), feuilles (alimentation) -->
+  <defs>
+    <clipPath id="ball"><circle cx="256" cy="138" r="54"/></clipPath>
+  </defs>
+  <rect width="512" height="512" fill="#18201E"/>
+  <g transform="translate(0 14)">
+
+  <!-- Balle de tennis -->
+  <circle cx="256" cy="138" r="54" fill="#D9EA4C"/>
+  <g clip-path="url(#ball)" fill="none" stroke="#F7FBE3" stroke-width="7" stroke-linecap="round">
+    <path d="M218 98 C240 122 240 154 218 178"/>
+    <path d="M294 98 C272 122 272 154 294 178"/>
+  </g>
+
+  <!-- Colonne vertébrale bien droite -->
+  <g fill="#F2A145">
+    <rect x="226" y="212" width="60" height="30" rx="15"/>
+    <rect x="229" y="250" width="54" height="30" rx="15"/>
+    <rect x="232" y="288" width="48" height="30" rx="15"/>
+    <rect x="235" y="326" width="42" height="30" rx="15"/>
+  </g>
+
+  <!-- Feuilles -->
+  <path d="M262 400 C270 340 320 304 382 300 C376 360 330 398 262 400 Z" fill="#4CBB7F"/>
+  <path d="M250 400 C242 352 204 324 152 322 C158 372 196 400 250 400 Z" fill="#3A9E68"/>
+  <g fill="none" stroke="#18201E" stroke-width="5" stroke-linecap="round" opacity="0.35">
+    <path d="M270 392 C300 360 330 334 360 318"/>
+    <path d="M242 392 C222 368 196 350 172 340"/>
+  </g>
+  </g>
+</svg>

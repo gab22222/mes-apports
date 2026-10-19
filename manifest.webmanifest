@@ -1,7 +1,7 @@
 {
-  "name": "Mes apports",
-  "short_name": "Mes apports",
-  "description": "Journal alimentaire et suivi des vitamines, minéraux et macronutriments.",
+  "name": "Health App",
+  "short_name": "Health App",
+  "description": "Alimentation, posture et tennis : journal des repas, programme de posture et technique de tennis.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

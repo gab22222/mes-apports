@@ -26,7 +26,7 @@
     nav.id = 'appnav';
     nav.setAttribute('role', 'navigation');
     nav.setAttribute('aria-label', 'Pages');
-    nav.innerHTML = '<p class="appnav-brand">Mes apports</p>' + PAGES.map(function (p) {
+    nav.innerHTML = '<p class="appnav-brand">Health App</p>' + PAGES.map(function (p) {
       var cur = p.file === here ? ' aria-current="page"' : '';
       return '<a class="appnav-link" href="' + p.href + '"' + cur + '>' + ICONS[p.icon] + '<span>' + p.label + '</span></a>';
     }).join('');
