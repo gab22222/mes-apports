@@ -1,0 +1,63 @@
+/* Barre latérale commune aux pages (Alimentation, Posture, Tennis). */
+.appnav, .appnav-toggle {
+  --an-bg: #FFFFFF; --an-ink: #000000; --an-muted: #5C5F63; --an-line: #E2E3E6; --an-active: #F4F4F5;
+}
+html[data-theme="dark"] .appnav, html[data-theme="dark"] .appnav-toggle {
+  --an-bg: #181D1B; --an-ink: #E9EEEB; --an-muted: #97A29C; --an-line: #2A322F; --an-active: #232A27;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] .appnav, html[data-theme="auto"] .appnav-toggle {
+    --an-bg: #181D1B; --an-ink: #E9EEEB; --an-muted: #97A29C; --an-line: #2A322F; --an-active: #232A27;
+  }
+}
+
+.appnav {
+  position: fixed; top: 0; bottom: 0; left: 0; z-index: 900;
+  width: 232px; box-sizing: border-box;
+  padding: calc(env(safe-area-inset-top) + 22px) 12px calc(env(safe-area-inset-bottom) + 20px) calc(env(safe-area-inset-left) + 12px);
+  background: var(--an-bg); border-right: 1px solid var(--an-line);
+  display: flex; flex-direction: column; gap: 2px;
+  font: 15px/1.3 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  transform: translateX(-102%); transition: transform .25s ease;
+  overflow-y: auto;
+}
+.appnav.open { transform: none; box-shadow: 0 0 40px rgba(0, 0, 0, .18); }
+.appnav-brand {
+  margin: 0 0 14px; padding: 0 12px;
+  font-size: 13px; font-weight: 600; color: var(--an-muted);
+}
+.appnav-link {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0; padding: 10px 12px; border-radius: 10px;
+  color: var(--an-muted); text-decoration: none; font-weight: 500;
+}
+.appnav-link svg { width: 20px; height: 20px; flex: none; }
+.appnav-link:hover { color: var(--an-ink); background: var(--an-active); }
+.appnav-link[aria-current="page"] { color: var(--an-ink); background: var(--an-active); font-weight: 600; }
+.appnav-link:focus-visible, .appnav-toggle:focus-visible { outline: 2px solid var(--an-ink); outline-offset: 2px; }
+
+.appnav-toggle {
+  position: fixed; z-index: 950;
+  left: calc(env(safe-area-inset-left) + 16px); bottom: calc(env(safe-area-inset-bottom) + 16px);
+  width: 48px; height: 48px; margin: 0; padding: 0; border: 0; border-radius: 50%;
+  display: grid; place-items: center; cursor: pointer;
+  background: var(--an-ink); color: var(--an-bg);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .22);
+}
+.appnav-toggle svg { width: 22px; height: 22px; }
+.appnav-scrim {
+  position: fixed; inset: 0; z-index: 899;
+  background: rgba(0, 0, 0, .35); opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.appnav-scrim.show { opacity: 1; pointer-events: auto; }
+
+/* Écran large : barre toujours visible, le contenu se décale. */
+@media (min-width: 1024px) {
+  .appnav { transform: none; }
+  body.appnav-on { padding-left: 232px; }
+  .appnav-toggle, .appnav-scrim { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .appnav, .appnav-scrim { transition: none; }
+}

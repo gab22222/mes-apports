@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="fr" data-theme="light" data-theme-lock>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technique de tennis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --text:#1f1e1d;
+  --body:#34332f;
+  --muted:#6f6e69;
+  --line:#ebe9e4;
+  --accent:#c2603d;
+  --serif:'Source Serif 4','Tiempos Text',Georgia,'Times New Roman',serif;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --top:56px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:#fff;color:var(--body);font-family:var(--serif);font-size:18px;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+
+.topbar{position:sticky;top:0;z-index:20;background:#fff;border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1080px;margin:0 auto;padding:0 24px;height:var(--top);display:flex;align-items:center;gap:40px}
+.brand{font-family:var(--serif);font-size:19px;font-weight:600;color:var(--text);letter-spacing:-.01em;white-space:nowrap}
+.tabs{display:flex;gap:6px;height:100%}
+.tabs a{display:flex;align-items:center;padding:0 14px;height:100%;font-family:var(--sans);font-size:14px;font-weight:500;color:var(--muted);text-decoration:none;position:relative;transition:color .15s}
+.tabs a:hover{color:var(--text)}
+.tabs a[aria-current="page"]{color:var(--text)}
+.tabs a[aria-current="page"]::after{content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--text)}
+
+.layout{max-width:1080px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:230px minmax(0,1fr);min-height:calc(100vh - var(--top))}
+.layout[hidden]{display:none}
+.side{position:sticky;top:var(--top);align-self:start;height:calc(100vh - var(--top));overflow-y:auto;padding:40px 24px 40px 0;border-right:1px solid var(--line)}
+.side:empty{border-right:none}
+.grp{font-family:var(--sans);font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#9a9892;margin:28px 0 8px}
+.grp:first-child{margin-top:0}
+.side a{display:block;font-family:var(--sans);font-size:14px;line-height:1.35;color:var(--muted);text-decoration:none;padding:6px 0 6px 14px;margin-left:-1px;border-left:2px solid transparent;transition:color .15s,border-color .15s}
+.side a:hover{color:var(--text)}
+.side a.on{color:var(--text);font-weight:500;border-left-color:var(--accent)}
+
+.main{padding:56px 0 140px 64px;min-width:0}
+.main > *{max-width:40rem}
+h1{font-family:var(--serif);font-size:44px;line-height:1.1;font-weight:500;letter-spacing:-.02em;color:var(--text);margin:0 0 20px}
+.lead{font-size:21px;line-height:1.6;color:var(--muted);margin:0 0 8px}
+section{scroll-margin-top:calc(var(--top) + 28px);padding-top:56px}
+h2{font-family:var(--serif);font-size:28px;line-height:1.25;font-weight:500;letter-spacing:-.01em;color:var(--text);margin:0 0 16px}
+h2 .n{display:block;font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+h3{font-family:var(--serif);font-size:21px;line-height:1.3;font-weight:500;color:var(--text);margin:36px 0 12px}
+p{margin:0 0 18px}
+ul,ol{margin:0 0 20px;padding-left:22px}
+li{margin-bottom:8px;padding-left:4px}
+li::marker{color:#a9a7a1}
+strong{font-weight:600;color:var(--text)}
+.note{border-left:2px solid var(--accent);padding:2px 0 2px 18px;margin:26px 0;color:var(--text)}
+.note b{display:block;font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.note p{margin:0}
+
+.steps{list-style:none;padding:0;margin:28px 0 0;border-top:1px solid var(--line)}
+.steps li{margin:0;padding:0;border-bottom:1px solid var(--line)}
+.steps a{display:grid;grid-template-columns:36px 1fr;gap:4px;padding:16px 4px;text-decoration:none;transition:background .15s}
+.steps a:hover{background:#faf9f7}
+.steps .k{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--accent);padding-top:5px}
+.steps .t{font-weight:500;color:var(--text);display:block}
+.steps .d{display:block;color:var(--muted);font-size:16px;line-height:1.5}
+
+table{width:100%;border-collapse:collapse;margin:24px 0 28px;font-size:16px;line-height:1.5}
+th{font-family:var(--sans);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#9a9892;text-align:left;padding:0 14px 10px 0;border-bottom:1px solid var(--text)}
+td{padding:14px 14px 14px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:600;color:var(--text);white-space:nowrap}
+
+@media (max-width:860px){
+  :root{--top:52px}
+  body{font-size:17px}
+  .topbar-in{padding:0 16px;gap:20px}
+  .tabs a{padding:0 10px}
+  .tabs a[aria-current="page"]::after{left:10px;right:10px}
+  .layout{display:block;padding:0}
+  .side{position:sticky;top:var(--top);z-index:10;height:auto;display:flex;gap:2px;overflow-x:auto;overflow-y:hidden;padding:8px 12px;background:#fff;border-right:none;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .side::-webkit-scrollbar{display:none}
+  .side:empty{display:none}
+  .grp{display:none}
+  .side a{flex:none;white-space:nowrap;border-left:none;border-radius:999px;padding:8px 12px;margin:0}
+  .side a.on{background:#f4f2ee;color:var(--text)}
+  .main{padding:32px 20px 100px}
+  h1{font-size:34px}
+  .lead{font-size:19px}
+  h2{font-size:24px}
+  section{scroll-margin-top:calc(var(--top) + 64px);padding-top:44px}
+  td:first-child{white-space:normal}
+}
+@media (max-width:480px){
+  :root{--top:88px}
+  .topbar-in{flex-wrap:wrap;align-content:flex-start;gap:0 16px}
+  .brand{width:100%;height:44px;line-height:44px;font-size:18px}
+  .tabs{height:44px}
+}
+</style>
+<meta name="theme-color" content="#FFFFFF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <span class="brand">Technique pour le tennis</span>
+    <nav class="tabs" aria-label="Coups">
+      <a href="#coup-droit" data-tab="coup-droit">Coup droit</a>
+      <a href="#revers" data-tab="revers">Revers</a>
+      <a href="#service" data-tab="service">Service</a>
+    </nav>
+  </div>
+</header>
+
+<div class="layout" data-panel="coup-droit">
+  <aside class="side" aria-label="Sommaire">
+    <div class="grp">Introduction</div>
+    <a href="#" data-target="cd-ordre">L’ordre de travail</a>
+    <div class="grp">Les points clés</div>
+    <a href="#" data-target="cd-placement">Placement</a>
+    <a href="#" data-target="cd-jambes">Jeu de jambes</a>
+    <a href="#" data-target="cd-preparation">Préparation</a>
+    <a href="#" data-target="cd-prise">Prise</a>
+    <a href="#" data-target="cd-relachement">Bras relâché</a>
+    <a href="#" data-target="cd-contact">Point de contact</a>
+    <a href="#" data-target="cd-geste">Geste, lift et finition</a>
+    <a href="#" data-target="cd-appuis">Appuis</a>
+    <a href="#" data-target="cd-chaine">Chaîne cinétique</a>
+    <a href="#" data-target="cd-timing">Timing</a>
+    <a href="#" data-target="cd-direction">Direction</a>
+    <a href="#" data-target="cd-balles">Balles difficiles</a>
+    <a href="#" data-target="cd-mouvement">En mouvement</a>
+    <a href="#" data-target="cd-recuperation">Récupération</a>
+    <div class="grp">Maximiser la vitesse</div>
+    <a href="#" data-target="cd-centre">Centre du tamis</a>
+    <a href="#" data-target="cd-transfert">Transfert de poids</a>
+    <a href="#" data-target="cd-separation">Séparation hanches-épaules</a>
+    <a href="#" data-target="cd-brasavant">Bras libre</a>
+    <a href="#" data-target="cd-rotation">Rotation et pronation</a>
+    <a href="#" data-target="cd-physique">Condition physique</a>
+    <a href="#" data-target="cd-materiel">Matériel</a>
+    <a href="#" data-target="cd-marge">Vitesse et marge</a>
+    <div class="grp">Tactique</div>
+    <a href="#" data-target="cd-moonballer">Contrer un moonballer</a>
+    <div class="grp">Pratique</div>
+    <a href="#" data-target="cd-erreurs">Erreurs courantes</a>
+    <a href="#" data-target="cd-entrainement">S’entraîner</a>
+  </aside>
+
+  <main class="main">
+    <h1>Le coup droit</h1>
+
+    <section id="cd-ordre">
+      <h2><span class="n">Introduction</span>L’ordre de travail</h2>
+      <ol class="steps">
+        <li><a href="#" data-target="cd-placement"><span class="k">01</span><span><span class="t">Placement</span><span class="d">Être à la bonne distance de la balle au moment de frapper.</span></span></a></li>
+        <li><a href="#" data-target="cd-jambes"><span class="k">02</span><span><span class="t">Jeu de jambes</span><span class="d">Se déplacer vite et finir chaque déplacement en équilibre.</span></span></a></li>
+        <li><a href="#" data-target="cd-preparation"><span class="k">03</span><span><span class="t">Préparation</span><span class="d">Tourner les épaules et armer avant le rebond.</span></span></a></li>
+        <li><a href="#" data-target="cd-prise"><span class="k">04</span><span><span class="t">Prise</span><span class="d">Choisir une prise adaptée et la garder.</span></span></a></li>
+        <li><a href="#" data-target="cd-relachement"><span class="k">05</span><span><span class="t">Bras relâché</span><span class="d">Tenir la raquette sans serrer.</span></span></a></li>
+        <li><a href="#" data-target="cd-contact"><span class="k">06</span><span><span class="t">Point de contact</span><span class="d">Toucher la balle sur le côté, autour de la hanche avant.</span></span></a></li>
+        <li><a href="#" data-target="cd-geste"><span class="k">07</span><span><span class="t">Geste, lift et finition</span><span class="d">Monter derrière la balle et finir haut.</span></span></a></li>
+        <li><a href="#" data-target="cd-appuis"><span class="k">08</span><span><span class="t">Appuis</span><span class="d">Choisir la position des pieds selon le temps disponible.</span></span></a></li>
+        <li><a href="#" data-target="cd-chaine"><span class="k">09</span><span><span class="t">Chaîne cinétique</span><span class="d">Jambes, hanches, tronc, puis bras.</span></span></a></li>
+        <li><a href="#" data-target="cd-timing"><span class="k">10</span><span><span class="t">Timing</span><span class="d">Choisir le moment de la frappe et garder un geste continu.</span></span></a></li>
+        <li><a href="#" data-target="cd-direction"><span class="k">11</span><span><span class="t">Direction</span><span class="d">Choisir le croisé ou le long de ligne par le point de contact.</span></span></a></li>
+        <li><a href="#" data-target="cd-balles"><span class="k">12</span><span><span class="t">Balles difficiles</span><span class="d">Adapter le coup à la hauteur et à la vitesse de la balle.</span></span></a></li>
+        <li><a href="#" data-target="cd-mouvement"><span class="k">13</span><span><span class="t">En mouvement</span><span class="d">Rester dans l’échange quand le temps manque.</span></span></a></li>
+        <li><a href="#" data-target="cd-recuperation"><span class="k">14</span><span><span class="t">Récupération</span><span class="d">Se replacer dès la frappe terminée.</span></span></a></li>
+        <li><a href="#" data-target="cd-centre"><span class="k">15</span><span><span class="t">Centre du tamis</span><span class="d">Toucher la balle au centre pour ne pas perdre d’énergie.</span></span></a></li>
+        <li><a href="#" data-target="cd-transfert"><span class="k">16</span><span><span class="t">Transfert de poids</span><span class="d">Frapper à travers la balle avec l’élan du corps.</span></span></a></li>
+        <li><a href="#" data-target="cd-separation"><span class="k">17</span><span><span class="t">Séparation hanches-épaules</span><span class="d">Étirer le tronc, puis le relâcher.</span></span></a></li>
+        <li><a href="#" data-target="cd-brasavant"><span class="k">18</span><span><span class="t">Bras libre</span><span class="d">Le replier pour accélérer la rotation.</span></span></a></li>
+        <li><a href="#" data-target="cd-rotation"><span class="k">19</span><span><span class="t">Rotation et pronation</span><span class="d">Laisser le bras se retourner autour du contact.</span></span></a></li>
+        <li><a href="#" data-target="cd-physique"><span class="k">20</span><span><span class="t">Condition physique</span><span class="d">Gagner en force, en puissance et en mobilité.</span></span></a></li>
+        <li><a href="#" data-target="cd-materiel"><span class="k">21</span><span><span class="t">Matériel</span><span class="d">Raquette, tamis, tension et jauge du cordage.</span></span></a></li>
+        <li><a href="#" data-target="cd-marge"><span class="k">22</span><span><span class="t">Vitesse et marge</span><span class="d">Frapper vite sans perdre la balle.</span></span></a></li>
+      </ol>
+    </section>
+
+    <section id="cd-placement">
+      <h2><span class="n">01</span>Le placement</h2>
+      <p>C’est la priorité numéro un, et la plus sous-estimée. Beaucoup de coups ratés sont des problèmes de placement qui ressemblent à des problèmes de technique.</p>
+      <ul>
+        <li><strong>La bonne distance</strong> : au contact, le bras est presque tendu. La balle n’est ni collée au corps, ni hors d’atteinte.</li>
+        <li><strong>La balle à côté de toi, pas sur toi</strong> : laisse un couloir entre ton corps et la trajectoire, pour que le bras ait la place de passer.</li>
+        <li><strong>La bonne hauteur</strong> : idéalement, tu frappes la balle entre la taille et le bas de la poitrine. Si elle arrive plus haut ou plus bas, recule, avance ou plie les jambes (point 12).</li>
+      </ul>
+      <div class="note"><b>Le test</b><p>Si tu dois replier le bras contre le corps ou t’étirer pour atteindre la balle, le problème vient du placement, pas du geste.</p></div>
+    </section>
+
+    <section id="cd-jambes">
+      <h2><span class="n">02</span>Le jeu de jambes</h2>
+      <p>Pour être bien placé, il faut d’abord bien se déplacer. Le jeu de jambes regroupe tous les pas qui t’amènent à la balle, puis ceux qui te ramènent.</p>
+      <ul>
+        <li><strong>Le saut de réception</strong> (split step) : un petit saut au moment où l’adversaire frappe. Tu retombes quand tu lis la direction de la balle, pieds écartés à largeur d’épaules, poids sur l’avant des pieds, prêt à partir.</li>
+        <li><strong>La première foulée</strong> : courte et explosive, vers la balle. C’est souvent elle qui décide si tu arrives à temps.</li>
+        <li><strong>Les pas chassés</strong> pour les petits déplacements sur le côté, jusqu’à un ou deux mètres : tu restes face au filet et en équilibre.</li>
+        <li><strong>Les pas croisés et la course</strong> pour les balles plus lointaines. Commence à tourner les épaules pendant que tu cours (point 03).</li>
+        <li><strong>Les petits pas d’ajustement</strong> dans les derniers mètres : plusieurs pas courts plutôt qu’une grande enjambée, pour régler finement la distance à la balle.</li>
+        <li><strong>Le freinage</strong> : le dernier pas stoppe l’élan et pose l’appui, genoux fléchis. Sans lui, tu frappes en déséquilibre.</li>
+      </ul>
+      <div class="note"><b>À retenir</b><p>Avant de corriger ton geste, regarde tes pieds. Une balle ratée vient souvent d’un déplacement tardif ou mal terminé.</p></div>
+      <p>Pour le travailler :</p>
+      <ul>
+        <li>Fais un saut de réception sur chaque balle, à l’entraînement comme en match.</li>
+        <li>Travaille la vitesse d’appuis avec une échelle de rythme ou une corde à sauter.</li>
+        <li>Déplace-toi sans balle (le « shadow ») : va toucher un plot, reviens, puis enchaîne avec un saut de réception.</li>
+      </ul>
+    </section>
+
+    <section id="cd-preparation">
+      <h2><span class="n">03</span>La préparation</h2>
+      <p>Dès que tu vois la balle partir vers ton coup droit, tourne les épaules et amène la raquette en arrière. La raquette doit être prête avant le rebond, pas pendant la montée de la balle.</p>
+      <ul>
+        <li><strong>Une rotation d’épaules d’un seul bloc</strong> : épaules, bras et raquette tournent ensemble. La main libre accompagne la raquette au début du mouvement.</li>
+        <li><strong>Une préparation compacte</strong> : la raquette n’a pas besoin d’aller loin derrière toi. C’est la rotation des épaules qui arme le coup, pas le bras.</li>
+        <li><strong>La tête stable</strong> et le regard sur la balle.</li>
+      </ul>
+      <p>Une préparation tardive oblige à précipiter le geste : c’est la cause la plus fréquente des frappes en retard.</p>
+    </section>
+
+    <section id="cd-prise">
+      <h2><span class="n">04</span>La prise</h2>
+      <p>La prise fixe l’angle du tamis au moment du contact. Pour un coup droit moderne, il y a deux choix principaux (numéros de pans pour un droitier) :</p>
+      <ul>
+        <li><strong>Eastern (pan n° 3)</strong> : la paume est derrière le manche, dans le prolongement du tamis. Polyvalente, elle convient au coup droit à plat ou peu lifté.</li>
+        <li><strong>Semi-western (pan n° 4)</strong> : la main passe un peu plus sous le manche. C’est la prise la plus répandue au haut niveau : elle facilite le lift et les balles hautes.</li>
+      </ul>
+      <p>La western (pan n° 5) donne encore plus de lift, mais elle gêne beaucoup sur les balles basses : elle est déconseillée pour débuter. La continentale (le « marteau ») sert au service, à la volée et au slice, pas au coup droit.</p>
+      <div class="note"><b>À retenir</b><p>Choisis une prise et garde-la. En changer sans cesse empêche de construire des automatismes.</p></div>
+    </section>
+
+    <section id="cd-relachement">
+      <h2><span class="n">05</span>Le bras relâché</h2>
+      <p>Une raquette tenue sans serrer accélère mieux qu’une raquette crispée. La vitesse vient de l’enchaînement du corps et de la souplesse du bras, pas de la force de l’avant-bras.</p>
+      <ul>
+        <li><strong>Une pression légère</strong> pendant la préparation, environ 3 sur 10. La main se resserre d’elle-même à l’impact.</li>
+        <li><strong>Épaule, coude et poignet souples</strong>, avec une expiration pendant la frappe.</li>
+        <li><strong>Le poignet ne se commande pas</strong> : il se libère tout seul juste avant le contact, quand le reste du corps est bien synchronisé.</li>
+      </ul>
+      <div class="note"><b>Le test</b><p>Frappe à 60-70 % de ta force, bras souple. Si la balle part vite sans effort, la chaîne fonctionne. Si elle part mollement, le problème est presque toujours en amont : placement, appuis ou rotation.</p></div>
+    </section>
+
+    <section id="cd-contact">
+      <h2><span class="n">06</span>Le point de contact</h2>
+      <p>Touche la balle <strong>sur le côté, autour de la hanche avant</strong>, entre la taille et le bas de la poitrine. Le bras est presque tendu, sans être bloqué.</p>
+      <ul>
+        <li><strong>Un peu devant ou un peu derrière la hanche avant : les deux fonctionnent.</strong> Plus la balle arrive vite, plus le contact s’avance. Sur une balle lente, tu peux la laisser venir plus près.</li>
+        <li><strong>Plus tôt, tu gagnes en vitesse. Plus tard, tu gagnes du temps de lecture</strong>, et souvent du contrôle, mais tu perds en puissance et la balle part plus facilement vers l’extérieur (vers la droite pour un droitier).</li>
+        <li><strong>Évite la balle trop près ou trop en arrière</strong>, bras plié contre le corps : le bras doit compenser, et c’est là qu’on se crispe et qu’on force.</li>
+        <li><strong>Regarde la balle jusqu’au contact</strong>, et garde la tête immobile un instant après la frappe.</li>
+      </ul>
+      <div class="note"><b>À tester</b><p>Sur des balles lancées à la main, frappe quelques balles avec un contact un peu plus devant, puis quelques-unes un peu plus près du corps. Garde le point qui te donne le plus de contrôle, tant que ton bras reste libre.</p></div>
+    </section>
+
+    <section id="cd-geste">
+      <h2><span class="n">07</span>Geste, lift et finition</h2>
+      <p>Le geste va de bas en haut et d’arrière en avant : la raquette descend sous le niveau de la balle, puis monte derrière elle. C’est cette montée qui crée le lift.</p>
+      <p>Le lift n’est pas qu’un effet de style : c’est ta marge de sécurité. Il fait plonger la balle, ce qui permet de frapper fort tout en la faisant retomber dans le court. Dans un modèle simplifié (balle frappée à 140 km/h depuis un mètre de haut), la zone de passage au-dessus du filet passe d’environ 35 cm sans effet à plus d’un mètre avec 3 000 tours par minute.</p>
+      <ul>
+        <li><strong>Raser le filet n’est pas plus sûr.</strong> Le milieu de la zone de sécurité est plus haut qu’on ne le croit, et il monte encore avec le lift. Passer trop près de la bande, c’est autant de risque de filet que de faute longue.</li>
+        <li><strong>Une finition haute</strong> : la raquette termine vers l’épaule opposée (la gauche pour un droitier). Le geste ne s’arrête pas au contact, il continue à travers la balle.</li>
+      </ul>
+    </section>
+
+    <section id="cd-appuis">
+      <h2><span class="n">08</span>Les appuis</h2>
+      <p>Il existe trois positions de pieds au moment de la frappe. On choisit selon la balle et le temps dont on dispose.</p>
+      <ul>
+        <li><strong>Ouvert</strong> : les pieds sont à peu près parallèles à la ligne de fond. C’est le plus courant aujourd’hui. Il fait gagner du temps quand on est pressé et permet de se replacer vite. La jambe droite (pour un droitier) se charge puis pousse pour lancer la rotation.</li>
+        <li><strong>Neutre</strong> : le pied avant avance vers le filet, dans la direction du coup. C’est la position classique, stable et équilibrée, idéale pour apprendre et pour transférer le poids vers l’avant.</li>
+        <li><strong>Fermé</strong> : le pied avant croise devant l’autre. Plus rare, il sert surtout quand on est étiré sur le côté, mais il bloque en partie la rotation des hanches.</li>
+      </ul>
+      <p>Dans tous les cas, ce qui compte est ce que l’appui permet : l’équilibre, et une rotation libre des hanches.</p>
+      <div class="note"><b>Par défaut</b><p>Prends un appui ouvert ou semi-ouvert par défaut. Passe en appui neutre quand tu avances pour attaquer une balle courte ou basse.</p></div>
+    </section>
+
+    <section id="cd-chaine">
+      <h2><span class="n">09</span>La chaîne cinétique</h2>
+      <p>Une fois les premiers points en place, tu peux travailler la chaîne qui produit la vitesse. Chaque partie du corps démarre quand la précédente atteint sa vitesse maximale, et profite de son élan. Les gros segments, lents mais lourds, produisent l’énergie. Les petits segments, rapides, la transmettent et l’amplifient jusqu’à la raquette.</p>
+      <table>
+        <thead><tr><th>Maillon</th><th>Ce qu’il fait</th><th>Sensation</th></tr></thead>
+        <tbody>
+          <tr><td>Jambes</td><td>Fléchissent puis poussent dans le sol.</td><td>Appui ferme, genoux souples.</td></tr>
+          <tr><td>Hanches</td><td>Tournent les premières vers le filet.</td><td>Le bassin ouvre la porte.</td></tr>
+          <tr><td>Tronc</td><td>Les épaules suivent avec un léger retard.</td><td>Le buste est tiré, pas poussé.</td></tr>
+          <tr><td>Bras</td><td>Reste en retard sur le tronc, puis accélère.</td><td>Bras souple, élastique.</td></tr>
+          <tr><td>Raquette</td><td>Rattrape le bras juste avant l’impact.</td><td>Rien à faire, ça vient seul.</td></tr>
+        </tbody>
+      </table>
+      <p>Si un maillon ne fait pas son travail (jambes raides, bras qui part avant les hanches), la vitesse finale chute bien plus qu’on ne l’imagine : tu perds son apport et l’effet multiplicateur sur tous les maillons suivants.</p>
+      <div class="note"><b>À éviter</b><p>Ne pilote pas la chaîne segment par segment pendant la frappe. Travaille un maillon à la fois, de bas en haut, puis laisse le geste redevenir fluide.</p></div>
+    </section>
+
+    <section id="cd-timing">
+      <h2><span class="n">10</span>Le timing</h2>
+      <p>Une même balle peut être frappée à trois moments du rebond. Chacun change le temps dont tu disposes et la difficulté du coup.</p>
+      <ul>
+        <li><strong>À la montée</strong> : tu prends du temps à l’adversaire et tu peux attaquer, mais c’est le plus exigeant.</li>
+        <li><strong>Au sommet</strong> : la balle est la plus lente et la plus facile à lire. C’est le meilleur moment pour apprendre.</li>
+        <li><strong>À la descente</strong> : tu as plus de temps, mais tu frappes plus bas, et tu en laisses aussi à l’adversaire.</li>
+      </ul>
+      <p>Le rythme compte autant que le moment : prépare-toi tôt, puis enchaîne préparation et frappe sans t’arrêter en haut du mouvement. Un geste continu se synchronise plus facilement avec la balle.</p>
+      <div class="note"><b>Un exercice</b><p>Dis « rebond » à voix haute quand la balle touche le sol, puis « frappe » au contact. Cela cale ton regard et ton rythme sur la balle.</p></div>
+    </section>
+
+    <section id="cd-direction">
+      <h2><span class="n">11</span>Le contrôle de la direction</h2>
+      <p>La direction se décide au point de contact, pas en changeant de geste. Tu gardes le même mouvement et tu touches la balle plus ou moins tôt.</p>
+      <ul>
+        <li><strong>Contact plus tôt, plus devant</strong> : la balle part en diagonale, en croisé.</li>
+        <li><strong>Contact un peu plus tard, plus près du corps</strong> : la balle part le long de la ligne.</li>
+        <li><strong>Ne tourne pas le poignet</strong> pour diriger la balle : cela dérègle le contact et fait perdre en régularité.</li>
+      </ul>
+      <p>Le croisé est le coup le plus sûr : il passe au centre du filet, là où il est le plus bas, et la diagonale offre plus de longueur de terrain. Le long de ligne passe sur la partie haute du filet et laisse moins de marge.</p>
+      <div class="note"><b>À retenir</b><p>Vise la profondeur avant l’angle. Une balle longue et centrée vaut mieux qu’une balle près de la ligne qui sort. Garde une marge d’un ou deux mètres avec les lignes.</p></div>
+    </section>
+
+    <section id="cd-balles">
+      <h2><span class="n">12</span>Les balles difficiles</h2>
+      <p>Le geste reste le même, mais chaque type de balle demande un ajustement.</p>
+      <table>
+        <thead><tr><th>Balle</th><th>Le problème</th><th>L’ajustement</th></tr></thead>
+        <tbody>
+          <tr><td>Haute</td><td>Le contact arrive au niveau de l’épaule ou au-dessus.</td><td>Prends-la à la montée ou recule franchement, et adapte ton geste (voir ci-dessous).</td></tr>
+          <tr><td>Basse</td><td>Le contact est sous la taille et le filet paraît haut.</td><td>Plie les jambes plutôt que le dos, et fais passer la balle plus haut au-dessus du filet, avec plus de lift.</td></tr>
+          <tr><td>Rapide</td><td>Pas le temps de faire un grand geste.</td><td>Prépare plus tôt et plus court, frappe devant toi et sers-toi de la vitesse de la balle.</td></tr>
+          <tr><td>Courte</td><td>La balle rebondit près du filet.</td><td>Avance pour la prendre tôt et accompagne vers l’avant : c’est une occasion d’attaquer.</td></tr>
+          <tr><td>Lente</td><td>Elle n’apporte pas d’énergie.</td><td>Ne te précipite pas : crée la vitesse avec les jambes et les hanches.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Les balles hautes</h3>
+      <p>Sur une balle à hauteur d’épaule ou de tête, le danger n’est plus le filet, c’est la faute longue : le contact est au-dessus de la bande, la balle a donc tendance à partir trop loin. Le but est de la faire redescendre dans le court.</p>
+      <p>Entre une balle basse et une balle haute, la vraie différence est la direction du geste :</p>
+      <ul>
+        <li><strong>Sur une balle basse</strong>, le geste monte nettement de bas en haut. La vitesse et le lift viennent en bonne partie de cette montée : les jambes poussent vers le haut et la raquette monte derrière la balle. La rotation du tronc compte, mais elle n’est pas seule.</li>
+        <li><strong>Sur une balle haute</strong>, le geste devient presque horizontal. Il n’y a plus de montée pour aider, donc la vitesse vient presque entièrement de la rotation horizontale des hanches et du tronc, un peu comme un swing de baseball.</li>
+      </ul>
+      <p>D’où les ajustements suivants :</p>
+      <ul>
+        <li><strong>Une prise plus fermée aide.</strong> En semi-western ou en western, le tamis reste fermé à hauteur d’épaule. En eastern, il a tendance à s’ouvrir, et la balle part long.</li>
+        <li><strong>Des appuis ouverts ou semi-ouverts</strong>, pour tourner les hanches et les épaules sans avancer dans la balle. Beaucoup de joueurs poussent sur la jambe arrière et décollent légèrement du sol pour monter vers la balle.</li>
+        <li><strong>Un contact devant toi</strong>, pour que le bras passe au-dessus de la balle. Prise trop près du corps, elle oblige à la pousser tamis ouvert.</li>
+        <li><strong>Une préparation haute</strong> : la raquette part à hauteur de la balle ou un peu au-dessus, pas en bas comme d’habitude.</li>
+        <li><strong>Un geste presque horizontal</strong>, voire légèrement descendant vers l’avant sur une balle au-dessus de l’épaule. Le lift vient du tamis fermé et du retournement du bras autour du contact, pas d’une montée de bas en haut.</li>
+        <li><strong>Une finition plus basse</strong>, en travers du corps, vers la hanche ou l’épaule opposée, plutôt qu’au-dessus de la tête.</li>
+      </ul>
+
+      <h3>Les balles profondes : où te placer</h3>
+      <p>Sur une balle liftée qui rebondit près de la ligne de fond, ce qui compte est ta distance au point de rebond. Après le rebond, la balle monte, atteint son sommet, puis redescend. Les distances ci-dessous sont des ordres de grandeur pour une balle qui rebondit sur la ligne : elles varient avec la vitesse, le lift et la surface.</p>
+      <table>
+        <thead><tr><th>Position</th><th>La balle</th><th>À retenir</th></tr></thead>
+        <tbody>
+          <tr><td>50 cm derrière la ligne</td><td>Elle vient de rebondir : basse, souvent sous le genou, et elle monte vite.</td><td>Possible, mais exigeant, presque une demi-volée. Demande un excellent timing et des jambes très fléchies.</td></tr>
+          <tr><td>1 m derrière la ligne</td><td>Elle monte encore, entre le genou et la taille.</td><td>Le meilleur compromis : coup agressif, hauteur confortable. Prépare court, raccourcis le geste et utilise la vitesse de la balle.</td></tr>
+          <tr><td>2 à 3 m derrière la ligne</td><td>Elle est à son sommet, souvent à hauteur d’épaule ou de tête.</td><td>La zone à éviter.</td></tr>
+          <tr><td>4 à 5 m derrière la ligne</td><td>Elle est redescendue vers la taille.</td><td>L’option sûre, mais tu laisses du temps à l’adversaire et tu te retrouves loin du court.</td></tr>
+        </tbody>
+      </table>
+      <div class="note"><b>À retenir</b><p>Dès que tu vois une balle profonde et lourde partir, choisis : tenir ta position pour la prendre à la montée, ou reculer franchement. Reculer d’un ou deux pas seulement te place pile au sommet du rebond.</p></div>
+    </section>
+
+    <section id="cd-mouvement">
+      <h2><span class="n">13</span>Le coup droit en mouvement</h2>
+      <p>Parfois, tu n’as pas le temps de bien te placer : tu frappes en courant, étiré ou en reculant. Le but change alors : il ne s’agit plus de gagner le point, mais de rester dans l’échange.</p>
+      <ul>
+        <li><strong>Freine sur le dernier pas.</strong> Même très court, l’appui stabilise le corps avant la frappe.</li>
+        <li><strong>Reste bas sur les jambes</strong> et raccourcis le geste.</li>
+        <li><strong>Joue haut, profond et plutôt au centre.</strong> Une balle de défense qui passe haut au-dessus du filet te laisse le temps de revenir.</li>
+        <li><strong>Évite de frapper en reculant</strong> quand tu le peux. Termine ton déplacement, puis pousse vers l’avant sur un appui ouvert.</li>
+      </ul>
+    </section>
+
+    <section id="cd-recuperation">
+      <h2><span class="n">14</span>La récupération</h2>
+      <p>Le coup n’est pas fini quand la raquette termine son geste : il faut encore te replacer pour la balle suivante.</p>
+      <ul>
+        <li><strong>Enchaîne tout de suite.</strong> Après le contact, la jambe arrière passe devant et devient le premier pas du retour.</li>
+        <li><strong>Ne reste pas à admirer ta balle.</strong> Suis-la des yeux en te déplaçant.</li>
+        <li><strong>Replace-toi en fonction de ton coup.</strong> Mets-toi au milieu des angles que ton adversaire peut jouer, pas forcément au centre exact du court.</li>
+        <li><strong>Termine par un saut de réception</strong> au moment où l’adversaire frappe (point 02).</li>
+      </ul>
+    </section>
+
+    <section id="cd-centre">
+      <h2><span class="n">15</span>Le centre du tamis</h2>
+      <p>C’est l’un des plus gros gains de vitesse, et il ne demande aucun effort en plus. Un contact décentré perd de l’énergie, fait tourner la raquette dans la main et fait vibrer le bras : la balle part moins vite et moins droit.</p>
+      <ul>
+        <li><strong>Regarde la balle jusqu’au contact</strong> et garde la bonne distance (points 01 et 06).</li>
+        <li><strong>Écoute le son.</strong> Un contact centré fait un bruit net et sec, un contact décentré un bruit sourd.</li>
+        <li><strong>Regarde les traces de feutre sur les cordes.</strong> Regroupées au centre, c’est bon. Près du cadre, revois ta distance à la balle.</li>
+      </ul>
+    </section>
+
+    <section id="cd-transfert">
+      <h2><span class="n">16</span>Le transfert de poids</h2>
+      <p>La rotation ne fait pas tout : l’élan du corps vers la cible ajoute de la vitesse. Pendant la frappe, le poids passe de la jambe arrière à la jambe avant, surtout en appui neutre ou fermé.</p>
+      <ul>
+        <li><strong>Frappe à travers la balle</strong>, vers ta cible, au lieu de freiner au contact (point 07).</li>
+        <li><strong>En appui ouvert</strong>, l’élan vers l’avant est plus faible : la rotation prend le relais, avec la jambe droite comme moteur pour un droitier (point 08).</li>
+        <li><strong>Ne te jette pas sur la balle</strong> : tu la prendrais trop près du corps et tu perdrais l’équilibre.</li>
+      </ul>
+    </section>
+
+    <section id="cd-separation">
+      <h2><span class="n">17</span>La séparation hanches-épaules</h2>
+      <p>Les hanches tournent vers le filet pendant que les épaules restent encore armées. Le tronc s’étire entre le bassin et les épaules, puis se détend, comme un élastique qu’on tend avant de le lâcher.</p>
+      <ul>
+        <li><strong>Prépare-toi tôt</strong> (point 03) : sinon, les hanches n’ont pas le temps de partir en premier.</li>
+        <li><strong>Sensation</strong> : le bassin s’ouvre, les épaules attendent un instant, puis suivent.</li>
+        <li><strong>N’exagère pas.</strong> Une séparation trop grande dérègle le timing. Son amplitude dépend aussi de la mobilité de ton dos et de tes hanches.</li>
+      </ul>
+    </section>
+
+    <section id="cd-brasavant">
+      <h2><span class="n">18</span>Le bras libre</h2>
+      <p>Le bras qui ne tient pas la raquette joue aussi sur la vitesse. Pendant la préparation, il aide les épaules à tourner. Pendant la frappe, il se replie contre le flanc : en le rapprochant du corps, le tronc tourne plus vite, comme un patineur qui serre les bras pour accélérer sa pirouette.</p>
+      <ul>
+        <li><strong>Erreur courante</strong> : le bras libre reste tendu vers le filet ou tombe le long du corps. La poitrine s’ouvre trop tôt et le tronc tourne moins vite.</li>
+        <li><strong>Variantes</strong> : certains joueurs le gardent plus ouvert pour l’équilibre. Le principe reste le même : il accompagne la rotation au lieu de la freiner.</li>
+      </ul>
+    </section>
+
+    <section id="cd-rotation">
+      <h2><span class="n">19</span>La rotation interne de l’épaule et la pronation</h2>
+      <p>Dans les derniers centimètres avant le contact, le bras se retourne : l’épaule tourne vers l’intérieur et l’avant-bras pivote (c’est la pronation). Ensemble, ces deux mouvements fournissent une grande part de la vitesse de la tête de raquette.</p>
+      <ul>
+        <li><strong>Ils se déclenchent d’eux-mêmes</strong> quand le bras reste souple et en retard sur le corps. Si tu serres, tu les bloques.</li>
+        <li><strong>Ne les force pas.</strong> Les provoquer volontairement sollicite l’épaule et le coude.</li>
+        <li><strong>Sensation</strong> : la raquette se retourne toute seule autour du contact.</li>
+      </ul>
+    </section>
+
+    <section id="cd-physique">
+      <h2><span class="n">20</span>La condition physique</h2>
+      <p>À technique égale, le joueur le plus puissant frappe le plus fort. La vitesse dépend de la force des jambes, de la puissance de rotation du tronc, du gainage et de la mobilité des hanches, du dos et des épaules.</p>
+      <ul>
+        <li><strong>Les jambes</strong> : squats, fentes et sauts, pour la poussée dans le sol.</li>
+        <li><strong>La rotation</strong> : lancers de médecine-ball de côté, contre un mur.</li>
+        <li><strong>Le gainage</strong> : planches et exercices anti-rotation, pour transmettre l’énergie sans en perdre.</li>
+        <li><strong>La mobilité</strong> : hanches, haut du dos et épaules, pour tourner sans forcer.</li>
+      </ul>
+      <div class="note"><b>À retenir</b><p>Ajoute le physique sur une technique déjà stable, et progressivement. En cas de douleur, ou si tu débutes la musculation, fais-toi conseiller par un préparateur physique ou un coach.</p></div>
+    </section>
+
+    <section id="cd-materiel">
+      <h2><span class="n">21</span>Le matériel</h2>
+      <p>Le matériel compte moins que la technique et le physique, mais il compte.</p>
+      <ul>
+        <li><strong>Le poids et l’équilibre de la raquette</strong> : une raquette plus lourde apporte plus de masse à l’impact, mais elle est moins maniable. Trop lourde pour toi, elle ralentit ton geste et fatigue le bras.</li>
+        <li><strong>La taille du tamis</strong> : un grand tamis pardonne mieux les contacts décentrés.</li>
+        <li><strong>La tension du cordage</strong> : la baisser d’un ou deux kilos donne un peu plus de puissance et un peu moins de contrôle.</li>
+        <li><strong>La jauge du cordage</strong> : une corde plus fine donne un peu plus de vitesse et d’effet, mais s’use beaucoup plus vite.</li>
+      </ul>
+      <p>Change un seul élément à la fois, pour pouvoir juger de son effet.</p>
+    </section>
+
+    <section id="cd-marge">
+      <h2><span class="n">22</span>La vitesse et la marge d’erreur</h2>
+      <p>Frapper vite ne sert que si la balle reste dans le court. Sans lift, plus la vitesse augmente, plus la zone de passage au-dessus du filet se réduit (point 07).</p>
+      <ul>
+        <li><strong>La bonne vitesse est celle que tu tiens tout un set.</strong> Augmente par paliers, par exemple 70 %, puis 80 %, puis 90 % de ta force, et redescends si trop de balles sortent.</li>
+        <li><strong>Garde du lift.</strong> Brosser la balle coûte un peu de vitesse, mais agrandit beaucoup ta marge.</li>
+        <li><strong>Une balle lourde et profonde</strong> gêne souvent plus l’adversaire qu’une balle très rapide mais courte.</li>
+      </ul>
+    </section>
+
+    <section id="cd-moonballer">
+      <h2><span class="n">Tactique</span>Contrer un moonballer</h2>
+      <p>Le moonballer renvoie des balles très hautes, lentes et profondes. Il veut que tu frappes depuis loin derrière ta ligne, que tu t’impatientes et que tu fautes. Pour le contrer, ne joue pas son jeu : prends-lui le temps et oblige-le à jouer des balles qu’il n’aime pas.</p>
+      <ul>
+        <li><strong>Prends la balle plus tôt.</strong> Une balle très haute te laisse le temps de lire sa trajectoire : utilise-le pour avancer, pas pour reculer. Prends-la à la montée, près de la ligne de fond (point 12), ou de volée, avant le rebond. Une drive-volée (coup droit frappé de volée) ou une simple volée au milieu du court te place directement en position d’attaque.</li>
+        <li><strong>Monte au filet.</strong> C’est souvent l’arme la plus efficace. Une balle lobée et lente est facile à volleyer ou à smasher, et beaucoup de moonballers ne savent pas faire de passing. Monte après une bonne balle d’approche, profonde et plutôt dans son revers.</li>
+        <li><strong>Joue bas.</strong> Un slice bas et profond l’empêche de lober facilement : pour faire monter une balle basse, il doit la soulever depuis le sol, ce qui est plus dur et moins précis. Les amortis marchent aussi, car beaucoup de moonballers restent loin derrière leur ligne et n’aiment pas avancer.</li>
+        <li><strong>Fais-le courir.</strong> Un moonballer est à l’aise quand il est bien placé. Joue des angles pour qu’il frappe en mouvement : ses balles deviennent plus courtes et plus faciles à attaquer.</li>
+        <li><strong>Reste patient.</strong> Si tu dois rester au fond, ne cherche pas le coup gagnant depuis quatre mètres derrière ta ligne. Joue avec de la marge, profond et lifté, et attends la balle courte pour attaquer. L’énervement et la précipitation sont exactement ce qu’il cherche.</li>
+      </ul>
+      <div class="note"><b>Le plan</b><p>Mélange les solutions : prends la balle tôt ou de volée dès que possible, glisse des slices bas et des amortis pour casser son rythme, et finis le point au filet.</p></div>
+    </section>
+
+    <section id="cd-erreurs">
+      <h2><span class="n">Pratique</span>Erreurs courantes</h2>
+      <table>
+        <thead><tr><th>Symptôme</th><th>Cause probable</th><th>Correction</th></tr></thead>
+        <tbody>
+          <tr><td>Balle dans le filet</td><td>Contact trop bas, geste trop horizontal</td><td>Monter davantage derrière la balle (point 07)</td></tr>
+          <tr><td>Balle trop longue</td><td>Pas assez de lift, tamis trop ouvert</td><td>Finir plus haut, brosser davantage la balle (point 07)</td></tr>
+          <tr><td>Balle qui part à côté</td><td>Contact trop tôt ou trop tard</td><td>Régler le point de contact (points 06 et 11)</td></tr>
+          <tr><td>Frappe en retard</td><td>Préparation tardive</td><td>Tourner les épaules dès le départ de la balle (point 03)</td></tr>
+          <tr><td>Manque de puissance</td><td>Le bras travaille seul, sans jambes ni hanches</td><td>Relâcher le bras, pousser dans le sol, tourner les hanches (points 05 et 09)</td></tr>
+          <tr><td>Son sourd, vibrations</td><td>Contact décentré</td><td>Revoir la distance à la balle (points 01 et 15)</td></tr>
+          <tr><td>Douleur au bras ou au coude</td><td>Crispation, contact trop près ou trop tard</td><td>Relâcher, revoir le placement, consulter si la douleur persiste</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="cd-entrainement">
+      <h2><span class="n">Pratique</span>S’entraîner</h2>
+      <ul>
+        <li><strong>Un seul point par séance.</strong> Placement, préparation, point de contact : travaille-les l’un après l’autre.</li>
+        <li><strong>Des balles lancées à la main</strong> par un partenaire, pour te concentrer sur le geste sans gérer la vitesse de l’échange.</li>
+        <li><strong>Du mini-tennis</strong> près du filet, pour sentir le contact et le relâchement.</li>
+        <li><strong>Des gestes à vide</strong> devant un miroir, pour installer l’enchaînement de la chaîne cinétique.</li>
+        <li><strong>Une vidéo de toi</strong>, filmée de côté ou de derrière, à comparer avec tes sensations.</li>
+        <li><strong>Un coach pour les premières séances</strong> : il repère vite le défaut qui bloque tout le reste.</li>
+      </ul>
+    </section>
+  </main>
+</div>
+
+<div class="layout" data-panel="revers" hidden>
+  <aside class="side"></aside>
+  <main class="main"></main>
+</div>
+
+<div class="layout" data-panel="service" hidden>
+  <aside class="side"></aside>
+  <main class="main"></main>
+</div>
+
+<script>
+(function(){
+  var tabs = document.querySelectorAll('[data-tab]');
+  var panels = document.querySelectorAll('[data-panel]');
+  var names = ['coup-droit','revers','service'];
+  var observer = null;
+
+  function activeName(){
+    var h = (location.hash || '').replace('#','');
+    return names.indexOf(h) > -1 ? h : 'coup-droit';
+  }
+
+  function setupSpy(panel){
+    if (observer) observer.disconnect();
+    var links = panel.querySelectorAll('.side a[data-target]');
+    if (!links.length) return;
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('data-target')] = a; });
+    observer = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){
+          links.forEach(function(a){ a.classList.remove('on'); });
+          var a = map[e.target.id];
+          if (a){
+            a.classList.add('on');
+            var side = a.parentNode;
+            if (side.scrollWidth > side.clientWidth && window.innerWidth <= 860){
+              side.scrollTo({left: a.offsetLeft - 16, behavior:'smooth'});
+            }
+          }
+        }
+      });
+    }, {rootMargin:'-18% 0px -72% 0px', threshold:0});
+    Object.keys(map).forEach(function(id){
+      var s = document.getElementById(id);
+      if (s) observer.observe(s);
+    });
+  }
+
+  function show(name){
+    tabs.forEach(function(t){
+      if (t.getAttribute('data-tab') === name) t.setAttribute('aria-current','page');
+      else t.removeAttribute('aria-current');
+    });
+    panels.forEach(function(p){
+      p.hidden = p.getAttribute('data-panel') !== name;
+    });
+    var panel = document.querySelector('[data-panel="'+name+'"]');
+    setupSpy(panel);
+    var first = panel.querySelector('.side a');
+    if (first) first.classList.add('on');
+  }
+
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('[data-target]');
+    if (!a) return;
+    e.preventDefault();
+    var s = document.getElementById(a.getAttribute('data-target'));
+    if (s) s.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(e){
+      e.preventDefault();
+      var n = t.getAttribute('data-tab');
+      history.replaceState(null, '', '#' + n);
+      window.scrollTo({top:0});
+      show(n);
+    });
+  });
+
+  window.addEventListener('hashchange', function(){ show(activeName()); });
+  show(activeName());
+})();
+</script>
+</body>
+</html>

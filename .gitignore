@@ -1,0 +1,6 @@
+# Fichiers système macOS
+.DS_Store
+
+# Sauvegardes personnelles (ne jamais publier)
+mes-apports-*.json
+sauvegarde des repas/

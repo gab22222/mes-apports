@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programme Posture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fafaf9;
+    --surface: #ffffff;
+    --text: #1c1917;
+    --muted: #78716c;
+    --line: #e7e5e4;
+    --accent: #0f766e;
+    --accent-soft: #ccfbf1;
+    --done: #a8a29e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c0a09;
+      --surface: #1c1917;
+      --text: #f5f5f4;
+      --muted: #a8a29e;
+      --line: #292524;
+      --accent: #2dd4bf;
+      --accent-soft: #134e4a;
+      --done: #57534e;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c0a09;
+    --surface: #1c1917;
+    --text: #f5f5f4;
+    --muted: #a8a29e;
+    --line: #292524;
+    --accent: #2dd4bf;
+    --accent-soft: #134e4a;
+    --done: #57534e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 680px; margin: 0 auto; padding: 48px 16px 64px; }
+
+  header { margin-bottom: 32px; }
+  .eyebrow {
+    font-size: 12px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--accent);
+  }
+  h1 { font-size: 32px; font-weight: 700; letter-spacing: -.02em; margin: 8px 0 12px; line-height: 1.15; }
+  .lead { color: var(--muted); font-size: 16px; }
+
+  nav {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    padding: 12px 0;
+    margin-bottom: 24px;
+  }
+  .tabs {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    background: var(--line); border-radius: 12px; padding: 4px;
+  }
+  .tab {
+    border: 0; background: transparent; color: var(--muted);
+    font: inherit; font-size: 14px; font-weight: 600;
+    padding: 10px 8px; border-radius: 9px; cursor: pointer; text-align: center; text-decoration: none;
+    transition: background .15s, color .15s;
+  }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+
+  section[hidden] { display: none; }
+  section[data-group] { scroll-margin-top: 72px; }
+  #gym { margin-top: 40px; }
+  .js #gym { margin-top: 0; }
+  .section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  h2 { font-size: 22px; font-weight: 700; letter-spacing: -.01em; }
+  .freq { font-size: 13px; color: var(--muted); white-space: nowrap; }
+  .section-intro { color: var(--muted); font-size: 15px; margin-bottom: 20px; }
+
+  .progress { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+  .progress span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s; }
+
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .ex {
+    display: grid; grid-template-columns: auto 1fr; gap: 14px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .ex:hover { border-color: var(--muted); }
+  .ex input { position: absolute; opacity: 0; pointer-events: none; }
+  .check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid var(--line); margin-top: 2px;
+    display: grid; place-items: center; transition: all .15s;
+  }
+  .check svg { width: 12px; height: 12px; opacity: 0; }
+  .ex input:checked + .check { background: var(--accent); border-color: var(--accent); }
+  .ex input:checked + .check svg { opacity: 1; }
+  .ex input:checked ~ .body .name { color: var(--done); text-decoration: line-through; }
+  .ex input:focus-visible + .check { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .name { font-weight: 600; font-size: 16px; }
+  .key { font-size: 11px; font-weight: 600; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 99px; margin-left: 6px; vertical-align: middle; }
+  .dose { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text); background: var(--bg); border: 1px solid var(--line); padding: 2px 10px; border-radius: 99px; white-space: nowrap; }
+  .desc { color: var(--muted); font-size: 14px; margin-top: 4px; }
+
+  .schema {
+    margin-top: 12px; padding: 10px 10px 8px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 12px;
+  }
+  .schema svg { display: block; width: 100%; height: auto; max-height: 180px; margin: 0 auto; }
+  .schema .cap { font-size: 12.5px; color: var(--muted); text-align: center; margin-top: 4px; line-height: 1.4; }
+  .schema .sk { fill: none; stroke: var(--text); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+  .schema .ac { stroke: var(--accent); }
+  .schema .hd { fill: var(--surface); stroke: var(--text); stroke-width: 4; }
+  .schema .dt { fill: var(--text); }
+  .schema .env { fill: none; stroke: var(--muted); stroke-width: 2; opacity: .55; stroke-linecap: round; }
+  .schema .dash { stroke-dasharray: 3 5; }
+  .schema .wall { fill: var(--line); }
+  .schema .roller { fill: var(--line); stroke: var(--muted); stroke-width: 2; }
+  .schema .band { fill: none; stroke: var(--accent); stroke-width: 2.5; opacity: .75; stroke-linecap: round; }
+  .schema .db { fill: none; stroke: var(--text); stroke-width: 8; stroke-linecap: round; }
+  .schema .arr { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+  .schema .lbl { fill: var(--muted); font-size: 9px; font-family: inherit; letter-spacing: .04em; }
+  .schema .big { fill: var(--accent); font-size: 30px; font-weight: 700; font-family: inherit; }
+
+  .vid {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 10px; padding: 6px 12px 6px 10px;
+    font-size: 13px; font-weight: 600; text-decoration: none;
+    color: var(--accent); background: var(--accent-soft);
+    border-radius: 99px; transition: opacity .15s;
+  }
+  .vid:hover { opacity: .8; }
+  .vid svg { width: 12px; height: 12px; fill: currentColor; }
+
+  .tmr-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin: 10px 8px 0 0; padding: 6px 12px 6px 10px;
+    font: inherit; font-size: 13px; font-weight: 600;
+    color: var(--surface); background: var(--accent);
+    border: 0; border-radius: 99px; cursor: pointer;
+  }
+  .tmr-btn svg { width: 12px; height: 12px; fill: currentColor; }
+  .tmr-btn[hidden] { display: none; }
+  .tmr {
+    margin-top: 12px; padding: 14px; border-radius: 12px; cursor: default;
+    background: var(--bg); border: 1.5px solid var(--line); text-align: center;
+    transition: border-color .2s;
+  }
+  .tmr[hidden] { display: none; }
+  .tmr[data-kind="work"] { border-color: var(--accent); }
+  .tmr-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; font-weight: 600; }
+  .tmr-kind { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .tmr[data-kind="rest"] .tmr-kind, .tmr[data-kind="between"] .tmr-kind { color: var(--muted); }
+  .tmr-time { font-size: 46px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1.1; margin: 8px 0 2px; }
+  .tmr[data-kind="rest"] .tmr-time, .tmr[data-kind="between"] .tmr-time { color: var(--muted); }
+  .tmr-sub { font-size: 13px; color: var(--muted); min-height: 1.4em; }
+  .tmr-bar { height: 4px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 12px 0; }
+  .tmr-bar span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .2s linear; }
+  .tmr[data-kind="rest"] .tmr-bar span, .tmr[data-kind="between"] .tmr-bar span { background: var(--muted); }
+  .tmr-ctrl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tmr-ctrl button {
+    font: inherit; font-size: 13px; font-weight: 600; padding: 10px 0; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  }
+  .tmr-ctrl button[data-a="toggle"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+
+  .note {
+    margin-top: 16px; padding: 14px 16px; border-radius: 12px;
+    background: var(--accent-soft); font-size: 14px;
+  }
+  .reset { margin-top: 16px; background: none; border: 0; color: var(--muted); font: inherit; font-size: 13px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+  .extras { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 32px; display: grid; gap: 28px; }
+  h3 { font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+  .extras ul { list-style: none; display: grid; gap: 8px; }
+  .extras li { font-size: 15px; padding-left: 18px; position: relative; }
+  .extras li::before { content: ""; position: absolute; left: 0; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+  .warn { font-size: 14px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 14px; }
+
+  @media (max-width: 480px) {
+    .wrap { padding-top: 32px; }
+    h1 { font-size: 27px; }
+  }
+</style>
+<meta name="theme-color" content="#FFFFFF">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="nav.css">
+<script src="nav.js" defer></script>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Programme posture</div>
+    <h1>Tête droite, dos solide.</h1>
+    <p class="lead">Renforcer le cou profond et le haut du dos, assouplir pectoraux et nuque. La régularité compte plus que l'intensité.</p>
+  </header>
+
+  <nav>
+    <div class="tabs" role="tablist">
+      <a class="tab" role="tab" id="t-daily" href="#daily" aria-controls="daily" aria-selected="true">Routine quotidienne</a>
+      <a class="tab" role="tab" id="t-gym" href="#gym" aria-controls="gym" aria-selected="false">Musculation</a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="daily" role="tabpanel" aria-labelledby="t-daily" data-group="daily">
+      <div class="section-head">
+        <h2>Routine quotidienne</h2>
+        <span class="freq">Tous les jours · 10–15 min</span>
+      </div>
+      <p class="section-intro">Mobilité et activation. Coche au fur et à mesure, tout se remet à zéro chaque jour.</p>
+      <div class="progress"><span></span></div>
+      <div class="list">
+        <label class="ex"><input type="checkbox" data-id="d1"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Chin tucks<span class="key">Clé</span></span><span class="dose">3 × 10 · 5 s</span></div>
+          <p class="desc">Tête droite, rentre le menton vers l'arrière comme pour faire un double menton. Tiens 5 secondes, sans baisser la tête.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Le menton recule à l'horizontale : l'oreille revient au-dessus de l'épaule."><polyline class="env dash" points="100,20 100,70"></polyline><polyline class="sk" points="100,72 100,136"></polyline><polyline class="sk" points="100,78 104,106 110,126"></polyline><path class="arr" d="M146 30 H124 M129 25 L124 30 L129 35"></path><text class="lbl" x="14" y="130">VUE DE PROFIL</text><polyline class="sk ac" points="100,72 113,55"><animate attributeName="points" values="100,72 113,55;100,72 102,52;100,72 102,52;100,72 113,55" keyTimes="0;0.35;0.65;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><circle class="hd" r="10" cx="118" cy="46"><animate attributeName="cx" values="118;103;103;118" keyTimes="0;0.35;0.65;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="46;42;42;46" keyTimes="0;0.35;0.65;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle><circle class="dt" r="2" cx="124" cy="44"><animate attributeName="cx" values="124;109;109;124" keyTimes="0;0.35;0.65;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="44;40;40;44" keyTimes="0;0.35;0.65;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle></svg><p class="cap">Le menton recule à l'horizontale : l'oreille revient au-dessus de l'épaule.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=chin%20tuck%20exercice%20posture%20kin%C3%A9" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="d2"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Wall angels</span><span class="dose">2 × 10</span></div>
+          <p class="desc">Dos, tête et bras collés au mur. Monte et descends lentement les bras sans que rien ne se décolle.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Coudes et dos des mains restent collés au mur, de bas en haut."><rect class="wall" x="40" y="4" width="120" height="134" rx="8"></rect><polyline class="sk" points="100,62 100,108"></polyline><polyline class="sk" points="80,62 120,62"></polyline><polyline class="sk" points="100,108 90,136"></polyline><polyline class="sk" points="100,108 110,136"></polyline><circle class="hd" cx="100" cy="44" r="10"></circle><text class="lbl" x="14" y="130">DE FACE</text><polyline class="sk ac" points="80,62 58,64 56,40"><animate attributeName="points" values="80,62 58,64 56,40;80,62 70,36 86,12;80,62 58,64 56,40" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="120,62 142,64 144,40"><animate attributeName="points" values="120,62 142,64 144,40;120,62 130,36 114,12;120,62 142,64 144,40" keyTimes="0;0.5;1" dur="4s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"></animate></polyline></svg><p class="cap">Coudes et dos des mains restent collés au mur, de bas en haut.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=wall%20angels%20exercice%20posture" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="d3"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Extension thoracique</span><span class="dose">1–2 min</span></div>
+          <p class="desc">Rouleau en mousse en travers du haut du dos, mains derrière la tête. Laisse-toi aller en arrière, déplace le rouleau de quelques centimètres.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Le haut du dos bascule en arrière sur le rouleau, les fesses restent au sol."><polyline class="env" points="16,128 186,128"></polyline><circle class="roller" cx="92" cy="114" r="12"></circle><polyline class="sk" points="140,118 160,92 176,126"></polyline><polyline class="sk ac" points="140,118 104,102 70,96"><animate attributeName="points" values="140,118 104,102 70,96;140,118 104,102 70,110;140,118 104,102 70,110;140,118 104,102 70,96" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><circle class="hd" r="10" cx="60" cy="92"><animate attributeName="cx" values="60;61;61;60" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="92;116;116;92" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle></svg><p class="cap">Le haut du dos bascule en arrière sur le rouleau, les fesses restent au sol.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=extension%20thoracique%20rouleau%20mousse" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="d4"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Étirement pectoraux</span><span class="dose">2 × 30 s</span></div>
+          <p class="desc">Avant-bras contre un cadre de porte, coude à hauteur d'épaule. Avance doucement jusqu'à sentir l'étirement dans la poitrine.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Avant-bras fixé au cadre, tu avances le buste : ça tire dans la poitrine."><rect class="wall" x="76" y="6" width="7" height="132" rx="2"></rect><polyline class="env" points="16,137 186,137"></polyline><path class="arr" d="M130 92 H148 M143 87 L148 92 L143 97"></path><polyline class="sk" points="100,104 92,136"><animate attributeName="points" values="100,104 92,136;108,104 92,136;108,104 92,136;100,104 92,136" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk" points="100,104 108,136"><animate attributeName="points" values="100,104 108,136;108,104 128,136;108,104 128,136;100,104 108,136" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk" points="100,104 100,66"><animate attributeName="points" values="100,104 100,66;108,104 116,66;108,104 116,66;100,104 100,66" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="100,66 86,66 86,42"><animate attributeName="points" values="100,66 86,66 86,42;116,66 86,66 86,42;116,66 86,66 86,42;100,66 86,66 86,42" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><circle class="hd" r="10" cx="101" cy="53"><animate attributeName="cx" values="101;118;118;101" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="53;53;53;53" keyTimes="0;0.35;0.65;1" dur="4.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle></svg><p class="cap">Avant-bras fixé au cadre, tu avances le buste : ça tire dans la poitrine.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=%C3%A9tirement%20pectoraux%20cadre%20de%20porte" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="d5"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Étirement nuque</span><span class="dose">2 × 30 s / côté</span></div>
+          <p class="desc">Oreille vers l'épaule, la main du même côté guide doucement. Épaule opposée bien basse.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="L'oreille descend vers l'épaule, l'autre épaule reste basse. Tout en douceur."><polyline class="sk" points="100,64 100,110"></polyline><polyline class="sk" points="78,64 122,64"></polyline><polyline class="sk" points="78,64 74,90 72,112"></polyline><polyline class="sk" points="100,110 92,136"></polyline><polyline class="sk" points="100,110 108,136"></polyline><text class="lbl" x="14" y="130">DE FACE</text><polyline class="sk" points="100,64 100,52"><animate attributeName="points" values="100,64 100,52;100,64 105,54;100,64 105,54;100,64 100,52" keyTimes="0;0.35;0.65;1" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><circle class="hd" r="10" cx="100" cy="42"><animate attributeName="cx" values="100;110;110;100" keyTimes="0;0.35;0.65;1" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="42;46;46;42" keyTimes="0;0.35;0.65;1" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle><polyline class="sk ac" points="122,64 138,44 92,38"><animate attributeName="points" values="122,64 138,44 92,38;122,64 140,48 102,42;122,64 140,48 102,42;122,64 138,44 92,38" keyTimes="0;0.35;0.65;1" dur="5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline></svg><p class="cap">L'oreille descend vers l'épaule, l'autre épaule reste basse. Tout en douceur.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=%C3%A9tirement%20trap%C3%A8ze%20sup%C3%A9rieur%20nuque%20kin%C3%A9" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+      </div>
+      <button class="reset" type="button">Tout décocher</button>
+    </section>
+
+    <section id="gym" role="tabpanel" aria-labelledby="t-gym" data-group="gym">
+      <div class="section-head">
+        <h2>Musculation</h2>
+        <span class="freq">3× / semaine · lun, mer, ven</span>
+      </div>
+      <p class="section-intro">Renforcement du haut du dos et du cou profond. Augmente charges et temps de maintien progressivement.</p>
+      <div class="progress"><span></span></div>
+      <div class="list">
+        <label class="ex"><input type="checkbox" data-id="g1"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Face pulls</span><span class="dose">4 × 15</span></div>
+          <p class="desc">Élastique ou poulie à hauteur du visage. Tire vers le front en écartant les mains, coudes hauts.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Tire la corde vers le front, coudes hauts et bien écartés."><rect class="wall" x="14" y="8" width="8" height="130" rx="2"></rect><circle class="dt" cx="22" cy="46" r="3"></circle><polyline class="sk" points="120,66 120,106"></polyline><polyline class="sk" points="120,106 110,136"></polyline><polyline class="sk" points="120,106 130,136"></polyline><circle class="hd" cx="119" cy="52" r="10"></circle><circle class="dt" cx="113" cy="50" r="2"></circle><polyline class="band" points="22,46 72,56"><animate attributeName="points" values="22,46 72,56;22,46 108,48;22,46 108,48;22,46 72,56" keyTimes="0;0.35;0.65;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="120,68 96,62 72,56"><animate attributeName="points" values="120,68 96,62 72,56;120,68 140,56 108,48;120,68 140,56 108,48;120,68 96,62 72,56" keyTimes="0;0.35;0.65;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline></svg><p class="cap">Tire la corde vers le front, coudes hauts et bien écartés.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=face%20pull%20technique%20%C3%A9lastique%20poulie" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="g2"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Rowing</span><span class="dose">4 × 10–12</span></div>
+          <p class="desc">Haltère ou poulie basse. Serre bien les omoplates en fin de mouvement, garde le menton rentré.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Tire le coude vers la hanche en serrant l'omoplate, dos bien plat."><rect class="wall" x="64" y="100" width="90" height="7" rx="3"></rect><polyline class="env" points="72,107 72,136"></polyline><polyline class="env" points="146,107 146,136"></polyline><polyline class="sk" points="140,80 128,100 152,100"></polyline><polyline class="sk" points="140,80 162,108 164,136"></polyline><polyline class="sk" points="84,78 86,100"></polyline><polyline class="sk" points="140,80 80,78"></polyline><circle class="hd" cx="70" cy="74" r="10"></circle><polyline class="sk ac" points="84,80 86,104 88,126"><animate attributeName="points" values="84,80 86,104 88,126;84,80 108,64 106,90;84,80 108,64 106,90;84,80 86,104 88,126" keyTimes="0;0.35;0.65;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="db" points="80,126 96,126"><animate attributeName="points" values="80,126 96,126;98,90 114,90;98,90 114,90;80,126 96,126" keyTimes="0;0.35;0.65;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline></svg><p class="cap">Tire le coude vers la hanche en serrant l'omoplate, dos bien plat.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=rowing%20halt%C3%A8re%20un%20bras%20bonne%20technique" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="g3"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Y-T-W allongé</span><span class="dose">3 × 8 chaque</span></div>
+          <p class="desc">À plat ventre, poids très légers ou sans poids. Lève les bras en Y, puis en T, puis en W, pouces vers le haut.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="À plat ventre : bras en Y, puis en T, puis en W. Pouces vers le haut."><polyline class="sk" points="100,54 100,108"></polyline><polyline class="sk" points="88,54 112,54"></polyline><polyline class="sk" points="100,108 92,136"></polyline><polyline class="sk" points="100,108 108,136"></polyline><circle class="hd" cx="100" cy="40" r="10"></circle><text class="lbl" x="14" y="130">VUE DE DESSUS</text><polyline class="sk ac" points="88,54 78,36 68,18"><animate attributeName="points" values="88,54 78,36 68,18;88,54 78,36 68,18;88,54 72,54 56,54;88,54 72,54 56,54;88,54 76,70 70,46;88,54 76,70 70,46;88,54 78,36 68,18" keyTimes="0;0.2;0.33;0.53;0.66;0.86;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="112,54 122,36 132,18"><animate attributeName="points" values="112,54 122,36 132,18;112,54 122,36 132,18;112,54 128,54 144,54;112,54 128,54 144,54;112,54 124,70 130,46;112,54 124,70 130,46;112,54 122,36 132,18" keyTimes="0;0.2;0.33;0.53;0.66;0.86;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><text class="big" x="166" y="52" opacity="1">Y<animate attributeName="opacity" values="1;1;0;0;0;0;1" keyTimes="0;0.2;0.33;0.53;0.66;0.86;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></text><text class="big" x="166" y="52" opacity="0">T<animate attributeName="opacity" values="0;0;1;1;0;0;0" keyTimes="0;0.2;0.33;0.53;0.66;0.86;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></text><text class="big" x="162" y="52" opacity="0">W<animate attributeName="opacity" values="0;0;0;0;1;1;0" keyTimes="0;0.2;0.33;0.53;0.66;0.86;1" dur="6s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></text></svg><p class="cap">À plat ventre : bras en Y, puis en T, puis en W. Pouces vers le haut.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=exercice%20YTW%20allong%C3%A9%20sur%20le%20ventre" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="g4"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Band pull-aparts</span><span class="dose">3 × 20</span></div>
+          <p class="desc">Élastique tenu bras tendus devant toi. Écarte jusqu'à toucher la poitrine, reviens lentement.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Bras tendus, écarte l'élastique jusqu'à la poitrine en serrant les omoplates."><polyline class="sk" points="74,98 126,98"></polyline><circle class="hd" cx="100" cy="98" r="11"></circle><text class="lbl" x="14" y="130">VUE DE DESSUS</text><polyline class="band" points="92,40 108,40"><animate attributeName="points" values="92,40 108,40;38,80 162,80;38,80 162,80;92,40 108,40" keyTimes="0;0.35;0.65;1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="76,98 92,40"><animate attributeName="points" values="76,98 92,40;76,98 38,80;76,98 38,80;76,98 92,40" keyTimes="0;0.35;0.65;1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="124,98 108,40"><animate attributeName="points" values="124,98 108,40;124,98 162,80;124,98 162,80;124,98 108,40" keyTimes="0;0.35;0.65;1" dur="3s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline></svg><p class="cap">Bras tendus, écarte l'élastique jusqu'à la poitrine en serrant les omoplates.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=band%20pull%20apart%20technique" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="g5"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Chin tuck allongé<span class="key">Clé</span></span><span class="dose">3 × 8 · 10 s</span></div>
+          <p class="desc">Sur le dos, rentre le menton puis décolle la tête de 2 cm. Tiens 10 s, puis augmente le temps semaine après semaine.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Rentre d'abord le menton, puis décolle la tête de 2 cm. Tiens."><polyline class="env" points="16,124 186,124"></polyline><polyline class="sk" points="70,112 140,112"></polyline><polyline class="sk" points="140,112 160,90 178,122"></polyline><polyline class="sk" points="72,116 122,118"></polyline><polyline class="sk ac" points="70,112 62,113"><animate attributeName="points" values="70,112 62,113;70,112 63,112;70,112 68,104;70,112 68,104;70,112 63,112;70,112 62,113" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="5.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><circle class="hd" r="10" cx="57" cy="114"><animate attributeName="cx" values="57;59;64;64;59;57" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="5.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="114;113;96;96;113;114" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="5.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle><circle class="dt" r="2" cx="54" cy="108"><animate attributeName="cx" values="54;59;67;67;59;54" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="5.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="108;107;90;90;107;108" keyTimes="0;0.15;0.3;0.7;0.85;1" dur="5.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle></svg><p class="cap">Rentre d'abord le menton, puis décolle la tête de 2 cm. Tiens.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=renforcement%20fl%C3%A9chisseurs%20profonds%20du%20cou%20allong%C3%A9%20chin%20tuck%20lift" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+        <label class="ex"><input type="checkbox" data-id="g6"><span class="check"><svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.2"><path d="M2 6.5l2.5 2.5L10 3.5"/></svg></span>
+          <div class="body"><div class="top"><span class="name">Tractions / tirage vertical</span><span class="dose">3 × max</span></div>
+          <p class="desc">Prise un peu plus large que les épaules. Descends les omoplates avant de tirer.</p>
+          <div class="schema"><svg viewBox="0 0 200 140" role="img" aria-label="Descends les omoplates, puis tire jusqu'à passer le menton au-dessus de la barre."><polyline class="sk" points="36,22 164,22"></polyline><text class="lbl" x="14" y="130">DE FACE</text><polyline class="sk" points="100,110 94,136"><animate attributeName="points" values="100,110 94,136;100,68 94,94;100,68 94,94;100,110 94,136" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk" points="100,110 106,136"><animate attributeName="points" values="100,110 106,136;100,68 106,94;100,68 106,94;100,110 106,136" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk" points="100,68 100,110"><animate attributeName="points" values="100,68 100,110;100,26 100,68;100,26 100,68;100,68 100,110" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk" points="84,68 116,68"><animate attributeName="points" values="84,68 116,68;84,26 116,26;84,26 116,26;84,68 116,68" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="84,68 76,46 70,24"><animate attributeName="points" values="84,68 76,46 70,24;84,26 62,44 70,24;84,26 62,44 70,24;84,68 76,46 70,24" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><polyline class="sk ac" points="116,68 124,46 130,24"><animate attributeName="points" values="116,68 124,46 130,24;116,26 138,44 130,24;116,26 138,44 130,24;116,68 124,46 130,24" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></polyline><circle class="hd" r="10" cx="100" cy="54"><animate attributeName="cx" values="100;100;100;100" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate><animate attributeName="cy" values="54;11;11;54" keyTimes="0;0.4;0.6;1" dur="3.5s" repeatCount="indefinite" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1"></animate></circle></svg><p class="cap">Descends les omoplates, puis tire jusqu'à passer le menton au-dessus de la barre.</p></div>
+          <a class="vid" href="https://www.youtube.com/results?search_query=traction%20technique%20omoplates%20d%C3%A9butant" target="_blank" rel="noopener"><svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"></path></svg>Voir en vidéo</a></div>
+        </label>
+      </div>
+      <div class="note">Si tu fais des exercices de poussée (pompes, développé couché), garde environ <strong>2 séries de tirage pour 1 de poussée</strong>.</div>
+      <button class="reset" type="button">Tout décocher</button>
+    </section>
+
+    <div class="extras">
+      <div>
+        <h3>Au quotidien</h3>
+        <ul>
+          <li>Écran à hauteur des yeux, téléphone levé plutôt que tête baissée.</li>
+          <li>Pause toutes les 30–45 min avec 5 chin tucks.</li>
+          <li>Oreiller pas trop épais.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Progression</h3>
+        <ul>
+          <li>3–4 semaines : premières sensations de différence.</li>
+          <li>2–3 mois : amélioration nette et visible.</li>
+          <li>Photo de profil toutes les 4 semaines pour comparer.</li>
+        </ul>
+      </div>
+      <p class="warn">Douleurs, fourmillements dans les bras ou maux de tête persistants : consulte un kiné avant de forcer.</p>
+    </div>
+  </main>
+</div>
+
+<script>
+  const today = new Date().toISOString().slice(0, 10);
+  const week = (() => { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7)); return d.toISOString().slice(0,10); })();
+  const keyFor = g => g === 'daily' ? 'posture-daily-' + today : 'posture-gym-' + today;
+
+  function load(k) { try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; } }
+  function save(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  document.querySelectorAll('section[data-group]').forEach(sec => {
+    const k = keyFor(sec.dataset.group);
+    const state = load(k);
+    const boxes = sec.querySelectorAll('input[type=checkbox]');
+    const bar = sec.querySelector('.progress span');
+    const update = () => {
+      const n = [...boxes].filter(b => b.checked).length;
+      bar.style.width = (n / boxes.length * 100) + '%';
+    };
+    boxes.forEach(b => {
+      b.checked = !!state[b.dataset.id];
+      b.addEventListener('change', () => { state[b.dataset.id] = b.checked; save(k, state); update(); });
+    });
+    sec.querySelector('.reset').addEventListener('click', () => {
+      boxes.forEach(b => { b.checked = false; state[b.dataset.id] = false; });
+      save(k, state); update();
+    });
+    update();
+  });
+
+  document.documentElement.classList.add('js');
+  document.querySelectorAll('a.vid').forEach(a => a.addEventListener('click', e => e.stopPropagation()));
+  const reduceMotion = (() => { try { return matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } })();
+  if (reduceMotion) document.querySelectorAll('.schema svg').forEach(s => s.pauseAnimations && s.pauseAnimations());
+  // ---------- Chronos guidés ----------
+  const plans = {
+    d1: { sets: 3, reps: 10, work: 5, between: 2, rest: 30 },
+    d2: { sets: 2, reps: 10, work: 4, rest: 30 },
+    d3: { sets: 1, reps: 1, work: 120, hint: 'Déplace le rouleau tout doucement' },
+    d4: { sets: 2, reps: 1, work: 30, rest: 15 },
+    d5: { sets: 4, reps: 1, work: 30, rest: 10, names: ['Côté gauche', 'Côté droit', 'Côté gauche', 'Côté droit'] },
+    g1: { sets: 4, reps: 15, work: 3, rest: 60 },
+    g2: { sets: 4, reps: 12, work: 3, rest: 90 },
+    g3: { sets: 3, reps: 8, work: 3, rest: 60, blocks: ['Y', 'T', 'W'] },
+    g4: { sets: 3, reps: 20, work: 2, rest: 45 },
+    g5: { sets: 3, reps: 8, work: 10, between: 3, rest: 45 },
+    g6: { sets: 3, reps: 0, rest: 120 }
+  };
+
+  function buildPhases(p) {
+    const out = [];
+    const nameOf = s => p.names ? p.names[s - 1] : `Série ${s}/${p.sets}`;
+    for (let s = 1; s <= p.sets; s++) {
+      const title = nameOf(s);
+      if (!p.reps) {
+        out.push({ kind: 'work', dur: null, title, sub: 'Fais ton max, puis appuie sur Suivant', snd: 'start' });
+      } else {
+        (p.blocks || [null]).forEach((b, bi) => {
+          for (let r = 1; r <= p.reps; r++) {
+            const tag = b ? `${b} · ` : '';
+            if (p.reps === 1) {
+              out.push({ kind: 'work', dur: p.work, title, sub: p.hint || 'Tiens la position', snd: 'start' });
+            } else if (p.between) {
+              out.push({ kind: 'work', dur: p.work, title, sub: `${tag}Rép ${r}/${p.reps} · tiens`, snd: 'start' });
+              if (r < p.reps) out.push({ kind: 'between', dur: p.between, title, sub: 'Relâche', snd: 'relax' });
+            } else {
+              out.push({ kind: 'work', dur: p.work, title, sub: `${tag}Rép ${r}/${p.reps}`, snd: (r === 1 && bi === 0) ? 'start' : 'rep' });
+            }
+          }
+        });
+      }
+      if (s < p.sets && p.rest) out.push({ kind: 'rest', dur: p.rest, title: 'Récupération', sub: `Ensuite : ${nameOf(s + 1)}`, snd: 'rest' });
+    }
+    return out;
+  }
+
+  let audio;
+  function beep(freq, dur = .12, vol = .25) {
+    try {
+      audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === 'suspended') audio.resume();
+      const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+      o.frequency.value = freq; o.type = 'sine';
+      g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur);
+      o.connect(g); g.connect(audio.destination); o.start(t); o.stop(t + dur);
+    } catch (e) {}
+  }
+  const sounds = {
+    start: () => beep(880, .25), rep: () => beep(660, .08, .18), rest: () => beep(440, .3),
+    relax: () => beep(520, .1, .15), tick: () => beep(600, .06, .15),
+    done: () => { beep(660, .15); setTimeout(() => beep(880, .15), 180); setTimeout(() => beep(1100, .3), 360); }
+  };
+  try { if ('vibrate' in navigator) { const s0 = sounds.start; sounds.start = () => { s0(); navigator.vibrate(120); }; } } catch (e) {}
+
+  let wakeLock = null;
+  async function lockScreen() { try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+  function unlockScreen() { try { wakeLock && wakeLock.release(); } catch (e) {} wakeLock = null; }
+
+  const fmt = ms => { const s = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  const fmtLen = s => s < 60 ? `${s} s` : `${Math.round(s / 60)} min`;
+  let activeTimer = null;
+
+  function makeTimer(card, input, plan) {
+    const ph = buildPhases(plan);
+    const total = ph.reduce((a, x) => a + (x.dur || 0), 0);
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'tmr-btn';
+    btn.innerHTML = `<svg viewBox="0 0 12 12"><path d="M3 1.5v9l7.5-4.5z"/></svg>Chrono${plan.reps ? ' · ' + fmtLen(total) : ''}`;
+    const panel = document.createElement('div');
+    panel.className = 'tmr'; panel.hidden = true;
+    panel.innerHTML = `<div class="tmr-top"><span class="tmr-title"></span><span class="tmr-kind"></span></div>
+      <div class="tmr-time">0:00</div><div class="tmr-sub"></div>
+      <div class="tmr-bar"><span></span></div>
+      <div class="tmr-ctrl"><button type="button" data-a="toggle">Pause</button><button type="button" data-a="next">Suivant</button><button type="button" data-a="stop">Stop</button></div>`;
+    const $ = s => panel.querySelector(s);
+    const vid = card.querySelector('a.vid');
+    vid.before(btn); vid.after(panel);
+
+    const t = { i: 0, endAt: 0, left: 0, running: false, lastSec: null };
+    const kinds = { work: 'Effort', rest: 'Repos', between: 'Relâche' };
+
+    function render(left) {
+      const x = ph[t.i];
+      panel.dataset.kind = x.kind;
+      $('.tmr-title').textContent = x.title;
+      $('.tmr-kind').textContent = kinds[x.kind];
+      $('.tmr-sub').textContent = x.sub;
+      $('.tmr-time').textContent = x.dur == null ? 'MAX' : fmt(left);
+      $('.tmr-bar span').style.width = x.dur == null ? '100%' : (100 - left / (x.dur * 10)) + '%';
+      $('[data-a="toggle"]').textContent = t.running ? 'Pause' : 'Reprendre';
+    }
+    function enter(k) {
+      t.i = k;
+      if (k >= ph.length) return finish();
+      const x = ph[k];
+      t.left = x.dur == null ? 0 : x.dur * 1000;
+      t.endAt = Date.now() + t.left;
+      t.lastSec = null;
+      sounds[x.snd] && sounds[x.snd]();
+      render(t.left);
+    }
+    function tick() {
+      if (!t.running) return;
+      const x = ph[t.i];
+      if (!x || x.dur == null) return;
+      const left = t.endAt - Date.now();
+      if (left <= 0) return enter(t.i + 1);
+      const sec = Math.ceil(left / 1000);
+      if (x.kind === 'rest' && sec <= 3 && sec !== t.lastSec) sounds.tick();
+      t.lastSec = sec;
+      render(left);
+    }
+    function start() {
+      if (activeTimer && activeTimer !== api) activeTimer.stop();
+      activeTimer = api;
+      btn.hidden = true; panel.hidden = false;
+      t.running = true; lockScreen(); enter(0);
+    }
+    function toggle() {
+      const x = ph[t.i];
+      if (t.running) { t.running = false; if (x && x.dur != null) t.left = t.endAt - Date.now(); }
+      else { t.running = true; t.endAt = Date.now() + t.left; }
+      render(x && x.dur != null ? t.left : 0);
+    }
+    function stop() {
+      t.running = false; panel.hidden = true; btn.hidden = false;
+      if (activeTimer === api) activeTimer = null;
+      unlockScreen();
+    }
+    function finish() {
+      t.running = false; sounds.done();
+      panel.dataset.kind = 'work';
+      $('.tmr-title').textContent = 'Terminé'; $('.tmr-kind').textContent = 'Bravo';
+      $('.tmr-time').textContent = '✓'; $('.tmr-sub').textContent = 'Exercice coché automatiquement';
+      $('.tmr-bar span').style.width = '100%';
+      if (!input.checked) { input.checked = true; input.dispatchEvent(new Event('change')); }
+      setTimeout(stop, 2500);
+    }
+    const api = { tick, stop };
+    btn.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); start(); });
+    panel.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      const a = e.target.closest('button') && e.target.closest('button').dataset.a;
+      if (a === 'toggle') toggle();
+      else if (a === 'next') { if (!t.running) toggle(); enter(t.i + 1); }
+      else if (a === 'stop') stop();
+    });
+    return api;
+  }
+
+  const timers = [];
+  document.querySelectorAll('.ex input[data-id]').forEach(input => {
+    const plan = plans[input.dataset.id];
+    if (plan) timers.push(makeTimer(input.closest('.ex'), input, plan));
+  });
+  setInterval(() => { activeTimer && activeTimer.tick(); }, 200);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && activeTimer) lockScreen(); });
+
+  const tabs = document.querySelectorAll('.tab');
+  function show(id) {
+    tabs.forEach(t => t.setAttribute('aria-selected', t.getAttribute('aria-controls') === id));
+    document.querySelectorAll('section[data-group]').forEach(s => s.hidden = s.id !== id);
+    try { localStorage.setItem('posture-tab', id); } catch (e) {}
+  }
+  tabs.forEach(t => t.addEventListener('click', e => { e.preventDefault(); show(t.getAttribute('aria-controls')); }));
+  let saved = 'daily';
+  try { saved = localStorage.getItem('posture-tab') || 'daily'; } catch (e) {}
+  show(saved);
+</script>
+</body>
+</html>
