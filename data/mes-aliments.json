@@ -145,6 +145,31 @@
         "qty": 1,
         "unite": "portion"
       }
+    },
+    {
+      "id": "sauce-tomate-basilic-panzani",
+      "nom": "Sauce tomate basilic",
+      "marque": "Panzani",
+      "code_barres": "3038359011481",
+      "ciqual_ref": "11107",
+      "pour_100g": {
+        "energie": 50,
+        "lipides": 1.8,
+        "ags": 0.2,
+        "glucides": 6.5,
+        "sucres": 5.3,
+        "fibres": 1.1,
+        "proteines": 1.3,
+        "sel": 0.89,
+        "sodium": 356
+      },
+      "unites": {
+        "portion": 210
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "portion"
+      }
     }
   ]
 }
