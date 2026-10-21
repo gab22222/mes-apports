@@ -1,4 +1,4 @@
-// Suivi du poids (page Exercices) : chaque pesée est enregistrée avec sa date et son heure,
+// Suivi du poids (page Exercices) : chaque pesée est enregistrée avec sa date,
 // stockée dans la même base que le reste de l'app et synchronisée entre appareils.
 
 import { db, uid } from './db.js';
@@ -9,7 +9,6 @@ const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': 
 const fmtKg = n => n.toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 const fmtDay = iso => new Date(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 const fmtShort = iso => new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
-const fmtTime = iso => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
 const PAGE = 10;
 let entries = [];   // { id, at, kg, createdAt, updatedAt }, la plus récente en premier
@@ -32,7 +31,7 @@ function render() {
 
   $('#weight-list').innerHTML = entries.slice(0, shown).map(e => `<li>
       <span class="w-kg">${fmtKg(e.kg)} kg</span>
-      <span class="w-date">${esc(fmtDay(e.at))} · ${esc(fmtTime(e.at))}</span>
+      <span class="w-date">${esc(fmtDay(e.at))}</span>
       <button type="button" class="w-del" data-id="${esc(e.id)}" aria-label="Supprimer la pesée du ${esc(fmtDay(e.at))}">×</button>
     </li>`).join('');
   $('#weight-more').hidden = entries.length <= shown;
