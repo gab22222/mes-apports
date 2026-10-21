@@ -120,6 +120,31 @@
         "qty": 1,
         "unite": "portion"
       }
+    },
+    {
+      "id": "pesto-basilic-panzani",
+      "nom": "Pesto basilic extra frais",
+      "marque": "Panzani",
+      "code_barres": "3038354199603",
+      "ciqual_ref": "11179",
+      "pour_100g": {
+        "energie": 331,
+        "lipides": 31,
+        "ags": 4.5,
+        "glucides": 8.3,
+        "sucres": 3.5,
+        "fibres": 1.7,
+        "proteines": 3.8,
+        "sel": 2.8,
+        "sodium": 1120
+      },
+      "unites": {
+        "portion": 40
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "portion"
+      }
     }
   ]
 }
