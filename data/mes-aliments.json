@@ -194,6 +194,21 @@
         "qty": 1,
         "unite": "portion"
       }
+    },
+    {
+      "id": "riz-basmati-taureau-aile",
+      "nom": "Riz basmati du Penjab (poids cru)",
+      "marque": "Taureau Ailé",
+      "ciqual_ref": "9119",
+      "note": "Tableau nutritionnel de l'étiquette non lisible sur la photo : toutes les valeurs viennent de Ciqual 9119 (riz thaï ou basmati, cru). Saisir le poids avant cuisson.",
+      "pour_100g": {},
+      "unites": {
+        "portion": 250
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "portion"
+      }
     }
   ]
 }
