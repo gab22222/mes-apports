@@ -170,6 +170,30 @@
         "qty": 1,
         "unite": "portion"
       }
+    },
+    {
+      "id": "linguine-12-garofalo",
+      "nom": "Linguine n°12 (poids cru)",
+      "marque": "Garofalo",
+      "ciqual_ref": "9810",
+      "note": "Valeurs pour 100 g de pâtes crues : saisir le poids avant cuisson. Sel indiqué « < 0,01 g », compté 0.",
+      "pour_100g": {
+        "energie": 351,
+        "lipides": 1.0,
+        "ags": 0.2,
+        "glucides": 70,
+        "sucres": 3.0,
+        "fibres": 3.0,
+        "proteines": 14,
+        "sel": 0
+      },
+      "unites": {
+        "portion": 250
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "portion"
+      }
     }
   ]
 }
