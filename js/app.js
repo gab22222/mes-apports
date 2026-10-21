@@ -204,8 +204,20 @@ function renderEntry() {
   $('#meal-type').innerHTML = MEAL_TYPES.map(t =>
     `<button type="button" role="radio" aria-checked="${t.id === d.type}" data-action="set-type" data-type="${t.id}">${t.label}</button>`).join('');
   renderFrequent();
+  renderMyFoods('#my-foods', 'pick');
   renderDraftItems();
   renderQtyPanel();
+}
+
+// Rangée « Mes aliments » : les aliments personnalisés, les plus utilisés d'abord, à choisir d'un toucher.
+function renderMyFoods(sel, action) {
+  const box = $(sel);
+  if (!box) return;
+  const list = [...state.customFoods].sort((a, b) =>
+    (state.usage.get(b.id) || 0) - (state.usage.get(a.id) || 0) || a.nom.localeCompare(b.nom, 'fr'));
+  box.innerHTML = list.length ? `<p class="my-foods-label">Mes aliments</p>
+    <div class="frequent">${list.map(cf => `<button type="button" class="chip" data-action="${action}" data-id="${esc(cf.id)}">
+      ${cf.marque ? `<small>${esc(cf.marque)}</small>` : ''}<span>${esc(cf.nom)}</span></button>`).join('')}</div>` : '';
 }
 
 function renderFrequent() {
@@ -836,6 +848,7 @@ function openSimulation() {
         <input id="sim-search" type="search" placeholder="Ajouter un aliment" autocomplete="off" autocorrect="off" spellcheck="false">
         <div id="sim-results" class="results" role="listbox" hidden></div>
       </div>
+      <div id="sim-my-foods" class="my-foods"></div>
       <div id="sim-qty" class="qty-panel" hidden></div>
       <ul id="sim-items" class="draft-items"></ul>
       <p id="sim-total" class="sim-total muted"></p>
@@ -850,6 +863,7 @@ function openSimulation() {
 
 function renderSimAll() {
   if (!$('#sim-items')) return;
+  renderMyFoods('#sim-my-foods', 'pick-sim');
   $('#sim-days').innerHTML = SIM_DAYS.map(n =>
     `<button type="button" role="radio" aria-checked="${state.sim.days === n}" data-action="sim-days" data-days="${n}">${n} jours</button>`).join('');
   $('#sim-items').innerHTML = state.sim.items.map((it, i) => `<li>
@@ -1079,6 +1093,7 @@ async function deleteCustomFood(btn, id) {
   await db.del('foods', id);
   state.customFoods = state.customFoods.filter(c => c.id !== id);
   unregisterFood(id);
+  renderMyFoods('#my-foods', 'pick');
   openSettings();
   toast('Aliment supprimé');
 }

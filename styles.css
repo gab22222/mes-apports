@@ -172,6 +172,10 @@ h2 { margin: 0; font: 650 20px/1.25 var(--display); letter-spacing: -0.01em; }
 }
 .chip small { display: block; color: var(--muted); font-size: 12px; }
 .chip span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.my-foods { margin-top: 12px; }
+.my-foods:empty { display: none; }
+.my-foods-label { margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.my-foods .frequent { margin-top: 0; }
 
 .search { position: relative; margin-top: 12px; }
 .search-icon { position: absolute; left: 12px; top: 13px; color: var(--muted); pointer-events: none; }
