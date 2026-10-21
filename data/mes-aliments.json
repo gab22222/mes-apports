@@ -9,11 +9,25 @@
       "code_barres": "3263670923414",
       "ciqual_ref": "26142",
       "pour_100g": {
-        "energie": 560, "lipides": 59, "ags": 9.7, "glucides": 2.3, "sucres": 0, "fibres": 0.8,
-        "proteines": 4.6, "sel": 0.8, "sodium": 320, "vitA": 10000, "vitD": 56
+        "energie": 560,
+        "lipides": 59,
+        "ags": 9.7,
+        "glucides": 2.3,
+        "sucres": 0,
+        "fibres": 0.8,
+        "proteines": 4.6,
+        "sel": 0.8,
+        "sodium": 320,
+        "vitA": 10000,
+        "vitD": 56
       },
-      "unites": { "portion": 17 },
-      "quantite_defaut": { "qty": 1, "unite": "portion" }
+      "unites": {
+        "portion": 17
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "portion"
+      }
     },
     {
       "id": "levure-de-biere-gerble",
@@ -21,12 +35,91 @@
       "marque": "Gerblé",
       "ciqual_ref": "11009",
       "pour_100g": {
-        "energie": 331, "lipides": 4.5, "ags": 0.8, "glucides": 16, "sucres": 0.8, "fibres": 23,
-        "proteines": 45, "sel": 0.25, "sodium": 100, "vitB1": 25, "vitB2": 2.5, "vitB3": 19,
-        "vitB5": 6.3, "vitB9": 2311, "phosphore": 1128
+        "energie": 331,
+        "lipides": 4.5,
+        "ags": 0.8,
+        "glucides": 16,
+        "sucres": 0.8,
+        "fibres": 23,
+        "proteines": 45,
+        "sel": 0.25,
+        "sodium": 100,
+        "vitB1": 25,
+        "vitB2": 2.5,
+        "vitB3": 19,
+        "vitB5": 6.3,
+        "vitB9": 2311,
+        "phosphore": 1128
       },
-      "unites": { "cas": 10 },
-      "quantite_defaut": { "qty": 3, "unite": "cas" }
+      "unites": {
+        "cas": 10
+      },
+      "quantite_defaut": {
+        "qty": 3,
+        "unite": "cas"
+      }
+    },
+    {
+      "id": "maquereaux-citron-olives-peche-ocean",
+      "nom": "Filets de maquereaux citron et olives",
+      "marque": "Pêche Océan",
+      "code_barres": "3564700514009",
+      "ciqual_ref": "26097",
+      "note": "Valeurs pour 100 g de produit total (poisson + marinade). Boîte de 176 g dont 88 g de poisson ; 1 portion = 88 g = 44 g de poisson. Vitamines et minéraux : Ciqual 26097 × 0,597 (part de maquereau).",
+      "pour_100g": {
+        "energie": 238,
+        "lipides": 21,
+        "ags": 4.2,
+        "glucides": 0.9,
+        "sucres": 0.9,
+        "fibres": 0,
+        "proteines": 12,
+        "sel": 0.9,
+        "sodium": 360,
+        "vitA": 11.3,
+        "vitD": 3.25,
+        "vitE": 0.525,
+        "vitB1": 0.015,
+        "vitB2": 0.143,
+        "vitB3": 2.64,
+        "vitB5": 0.161,
+        "vitB6": 0.119,
+        "vitB12": 5.46,
+        "calcium": 109.8,
+        "fer": 0.501,
+        "iode": 8.6,
+        "magnesium": 10.1,
+        "phosphore": 73.4,
+        "potassium": 98.5,
+        "selenium": 17.2,
+        "zinc": 0.609
+      },
+      "sources": {
+        "vitA": "ciqual-ajuste",
+        "vitD": "ciqual-ajuste",
+        "vitE": "ciqual-ajuste",
+        "vitB1": "ciqual-ajuste",
+        "vitB2": "ciqual-ajuste",
+        "vitB3": "ciqual-ajuste",
+        "vitB5": "ciqual-ajuste",
+        "vitB6": "ciqual-ajuste",
+        "vitB12": "ciqual-ajuste",
+        "calcium": "ciqual-ajuste",
+        "fer": "ciqual-ajuste",
+        "iode": "ciqual-ajuste",
+        "magnesium": "ciqual-ajuste",
+        "phosphore": "ciqual-ajuste",
+        "potassium": "ciqual-ajuste",
+        "selenium": "ciqual-ajuste",
+        "zinc": "ciqual-ajuste"
+      },
+      "unites": {
+        "portion": 88
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "portion"
+      }
     }
   ]
 }
