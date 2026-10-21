@@ -188,6 +188,53 @@
   .extras li::before { content: ""; position: absolute; left: 0; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
   .warn { font-size: 14px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 14px; }
 
+  /* Suivi du poids */
+  .weight { margin-bottom: 48px; }
+  .w-form { display: flex; gap: 8px; margin: 12px 0 14px; }
+  .w-input {
+    flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 0 14px;
+  }
+  .w-input:focus-within { border-color: var(--accent); }
+  .w-input input {
+    flex: 1; min-width: 0; width: 100%; border: 0; background: none; outline: none; color: var(--text);
+    font: inherit; font-size: 18px; font-weight: 600; padding: 10px 0; font-variant-numeric: tabular-nums;
+  }
+  .w-input span { color: var(--muted); font-weight: 600; }
+  .w-save {
+    flex: none; font: inherit; font-size: 15px; font-weight: 600; padding: 0 18px;
+    border: 0; border-radius: 12px; background: var(--accent); color: var(--surface); cursor: pointer;
+  }
+  .w-chart {
+    position: relative; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 12px 8px 6px; margin-bottom: 12px; touch-action: pan-y;
+  }
+  .w-chart[hidden] { display: none; }
+  .w-chart svg { display: block; }
+  .w-chart .grid { stroke: var(--line); stroke-width: 1; }
+  .w-chart .axis { fill: var(--muted); font-size: 11px; font-family: inherit; font-variant-numeric: tabular-nums; }
+  .w-chart .line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .w-chart .dot { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+  .w-chart .cross { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  .w-tip {
+    position: absolute; top: 2px; transform: translateX(-50%); pointer-events: none; white-space: nowrap;
+    background: var(--text); color: var(--bg); font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 8px;
+  }
+  .w-tip[hidden] { display: none; }
+  .w-list { list-style: none; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+  .w-list:empty { display: none; }
+  .w-list li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+  .w-list li:last-child { border-bottom: 0; }
+  .w-kg { font-weight: 600; font-variant-numeric: tabular-nums; min-width: 70px; }
+  .w-date { flex: 1; color: var(--muted); font-size: 14px; }
+  .w-del {
+    border: 0; background: var(--bg); color: var(--muted); border-radius: 99px;
+    min-width: 28px; height: 28px; padding: 0 8px; font: inherit; font-size: 15px; cursor: pointer;
+  }
+  .w-del[data-confirm] { color: #dc2626; font-size: 13px; font-weight: 600; }
+  #weight-more { margin-top: 10px; }
+  #weight-more[hidden] { display: none; }
+
   @media (max-width: 480px) {
     .wrap { padding-top: 32px; }
     h1 { font-size: 27px; }
@@ -199,11 +246,29 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="stylesheet" href="nav.css">
 <script src="nav.js" defer></script>
+<script type="module" src="js/weight.js"></script>
 </head>
 <body>
 <div class="wrap">
+  <section class="weight" aria-labelledby="weight-title">
+    <div class="section-head">
+      <h2 id="weight-title">Suivi du poids</h2>
+      <span class="freq" id="weight-delta"></span>
+    </div>
+    <form id="weight-form" class="w-form" autocomplete="off" novalidate>
+      <label class="w-input">
+        <input name="kg" type="text" inputmode="decimal" maxlength="6" enterkeyhint="done" aria-label="Poids en kilos">
+        <span>kg</span>
+      </label>
+      <button type="submit" class="w-save">Enregistrer</button>
+    </form>
+    <div class="w-chart" id="weight-chart" hidden></div>
+    <ul class="w-list" id="weight-list"></ul>
+    <button type="button" class="reset" id="weight-more" hidden>Afficher plus</button>
+  </section>
+
   <header>
-    <div class="eyebrow">Exercices</div>
+    <div class="eyebrow">Programme posture</div>
     <h1>Tête droite, dos solide.</h1>
     <p class="lead">Renforcer le cou profond et le haut du dos, assouplir pectoraux et nuque. La régularité compte plus que l'intensité.</p>
   </header>

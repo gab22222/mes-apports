@@ -1,7 +1,7 @@
 // Stockage local (IndexedDB). Chaque modification est écrite immédiatement.
 
 const DB_NAME = 'mes-apports';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 let dbPromise;
 
 function open() {
@@ -14,8 +14,13 @@ function open() {
         if (!db.objectStoreNames.contains('foods')) db.createObjectStore('foods', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
         if (!db.objectStoreNames.contains('weekly')) db.createObjectStore('weekly', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('weights')) db.createObjectStore('weights', { keyPath: 'id' });
       };
-      req.onsuccess = () => resolve(req.result);
+      req.onsuccess = () => {
+        // Une autre page ouverte (nouvelle version) doit pouvoir mettre la base à jour.
+        req.result.onversionchange = () => { req.result.close(); dbPromise = null; };
+        resolve(req.result);
+      };
       req.onerror = () => reject(req.error);
     });
   }
@@ -69,7 +74,7 @@ export const db = {
     if (list.length) notify('putMany', store);
   },
   async clearAll() {
-    for (const store of ['meals', 'foods', 'weekly', 'kv']) await run(store, 'readwrite', s => s.clear());
+    for (const store of ['meals', 'foods', 'weekly', 'weights', 'kv']) await run(store, 'readwrite', s => s.clear());
   },
 };
 

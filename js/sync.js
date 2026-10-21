@@ -5,8 +5,8 @@
 // La phrase secrète n'est jamais enregistrée, seule la clé dérivée (non exportable) l'est.
 //
 // Un fichier par mois de repas plus un fichier commun (profil, réglages, aliments,
-// aliments de la semaine, suppressions) : chaque envoi reste petit et l'historique
-// du dépôt grossit peu.
+// aliments de la semaine, suivi du poids, suppressions) : chaque envoi reste petit
+// et l'historique du dépôt grossit peu.
 //
 // Déroulé d'une synchronisation : lister les fichiers en ligne, télécharger ceux qui ont
 // changé, les intégrer aux données locales (le plus récent gagne, suppressions comprises),
@@ -24,7 +24,9 @@ const CONFIG_KEY = 'sync-config';
 const LOCAL_KEY = 'sync-local';
 const CACHE_KEY = 'sync-cache';
 // Listes synchronisées élément par élément (avec suivi des suppressions).
-const RECORD_STORES = ['meals', 'foods', 'weekly'];
+const RECORD_STORES = ['meals', 'foods', 'weekly', 'weights'];
+// Listes rangées dans le fichier commun (les repas ont leurs fichiers par mois).
+const COMMON_LISTS = RECORD_STORES.filter(st => st !== 'meals');
 // Clés propres à chaque appareil : jamais synchronisées.
 const DEVICE_KEYS = new Set(['draft', 'sim', 'meta']);
 // Erreurs qui demandent une action de l'utilisateur (les autres se règlent seules).
@@ -201,8 +203,7 @@ export function collectRemote(files) {
   const common = files[COMMON_PATH]?.doc || {};
   return {
     meals: Object.entries(files).filter(([p]) => p !== COMMON_PATH).flatMap(([, f]) => f.doc.meals || []),
-    foods: common.foods || [],
-    weekly: common.weekly || [],
+    ...Object.fromEntries(COMMON_LISTS.map(st => [st, common[st] || []])),
     equivs: common.equivs || {},
     profile: common.profile || null,
     profileAt: common.profileAt || '',
@@ -230,7 +231,7 @@ function planRecords(local, remote, deleted) {
 }
 
 // Ce qu'il faut changer localement pour intégrer les données en ligne.
-// local : { meals, foods, weekly, equivs, profile, settings } ; sync : { stamps, deleted, firstSyncDone }.
+// local : { meals, foods, weekly, weights, equivs, profile, settings } ; sync : { stamps, deleted, firstSyncDone }.
 export function planApply(local, remote, sync) {
   const deleted = Object.fromEntries(RECORD_STORES.map(st => [st, latest(sync.deleted[st], remote.deleted[st])]));
   const stamps = { ...sync.stamps };
@@ -267,8 +268,7 @@ export function buildFiles(local, sync, existingPaths = []) {
     profile: local.profile || null, profileAt: sync.stamps.profile || '',
     settings: stripTheme(local.settings), settingsAt: sync.stamps.settings || '',
     equivs: local.equivs || {},
-    foods: [...local.foods].sort(byId),
-    weekly: [...(local.weekly || [])].sort(byId),
+    ...Object.fromEntries(COMMON_LISTS.map(st => [st, [...(local[st] || [])].sort(byId)])),
     deleted: sync.deleted,
   });
   // Un mois qui n'a plus de repas est vidé plutôt que supprimé.
@@ -394,11 +394,11 @@ async function runOnce() {
 }
 
 async function readLocal() {
-  const [meals, foods, weekly, equivs, profile, settings] = await Promise.all([
-    db.all('meals'), db.all('foods'), db.all('weekly'), db.get('equivs'), db.get('profile'), db.get('settings'),
+  const [lists, equivs, profile, settings] = await Promise.all([
+    Promise.all(RECORD_STORES.map(st => db.all(st))), db.get('equivs'), db.get('profile'), db.get('settings'),
   ]);
   return {
-    meals: meals || [], foods: foods || [], weekly: weekly || [],
+    ...Object.fromEntries(RECORD_STORES.map((st, i) => [st, lists[i] || []])),
     equivs: equivs || {}, profile: profile || null, settings: settings || null,
   };
 }

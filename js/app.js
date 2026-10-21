@@ -1160,6 +1160,7 @@ async function exportData() {
     format: BACKUP_FORMAT, version: 1, exportedAt: new Date().toISOString(),
     profile: state.profile, settings: state.settings, meals: state.meals,
     customFoods: state.customFoods, equivs: state.equivs, weekly: state.weekly,
+    weights: await db.all('weights'),
   };
   const name = `mes-apports-${today()}.json`;
   const blob = new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' });
@@ -1203,6 +1204,8 @@ async function importBackup(file) {
   const weeklyIds = new Map(state.weekly.map(w => [w.id, w]));
   const weeklyToWrite = (data.weekly || []).filter(w => !weeklyIds.has(w.id) || (w.updatedAt || '') > (weeklyIds.get(w.id).updatedAt || ''));
   await db.putMany('weekly', weeklyToWrite);
+  const weightIds = new Map((await db.all('weights')).map(w => [w.id, w]));
+  await db.putMany('weights', (data.weights || []).filter(w => !weightIds.has(w.id) || (w.updatedAt || '') > (weightIds.get(w.id).updatedAt || '')));
   state.weekly = await db.all('weekly');
   state.equivs = { ...(data.equivs || {}), ...state.equivs };
   await db.set('equivs', state.equivs);
