@@ -397,6 +397,15 @@ function moveSelection(delta, target) {
   box.querySelectorAll('.result')[searchIndex].scrollIntoView({ block: 'nearest' });
 }
 
+// Quantité proposée la première fois pour un aliment personnalisé :
+// celle choisie à l'import, sinon 1 portion si une portion est définie.
+function defaultQty(food) {
+  const d = food.raw?.defaut;
+  if (d && d.qty > 0 && UNIT_BY_ID[d.unit]) return { qty: d.qty, unit: d.unit };
+  if (food.units?.portion) return { qty: 1, unit: 'portion' };
+  return null;
+}
+
 function pickFood(id, editIndex) {
   const food = foods.get(id);
   if (!food) return;
@@ -406,8 +415,8 @@ function pickFood(id, editIndex) {
     qty = it.qty; unit = it.unit;
   } else if (state.lastUse.has(id)) {
     ({ qty, unit } = state.lastUse.get(id));
-  } else if (food.units?.portion) {
-    qty = 1; unit = 'portion'; // aliment personnalisé avec une portion définie : 1 portion par défaut
+  } else if (defaultQty(food)) {
+    ({ qty, unit } = defaultQty(food));
   }
   state.picked = { food, qty, unit, editIndex };
   $('#food-search').value = '';
@@ -889,7 +898,7 @@ function simPick(id, editIndex) {
   let qty = 100, unit = 'g';
   if (editIndex !== undefined) ({ qty, unit } = state.sim.items[editIndex]);
   else if (state.lastUse.has(id)) ({ qty, unit } = state.lastUse.get(id));
-  else if (food.units?.portion) { qty = 1; unit = 'portion'; }
+  else if (defaultQty(food)) ({ qty, unit } = defaultQty(food));
   state.simPicked = { food, qty, unit, editIndex };
   $('#sim-search').value = '';
   runSearch('', 'sim');
@@ -1115,7 +1124,8 @@ const IMPORT_EXAMPLE = `{
       "glucides": 64, "sucres": 3.5, "fibres": 8,
       "proteines": 13, "sel": 0.01
     },
-    "unites": { "portion": 80 }
+    "unites": { "portion": 80 },
+    "quantite_defaut": { "qty": 1, "unite": "portion" }
   }]
 }`;
 
@@ -1159,7 +1169,10 @@ async function importFoods(text) {
       id: existing ? existing.id : 'u:' + uid(), nom: a.nom.trim(), marque: a.marque || undefined,
       code_barres: a.code_barres ? String(a.code_barres) : undefined,
       ciqual_ref: ref && foods.has('c:' + ref) ? ref : undefined, valeurs, sources, source: a.source || 'etiquette',
-      unites: a.unites || {}, createdAt: existing?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
+      unites: a.unites || {},
+      defaut: a.quantite_defaut && a.quantite_defaut.qty > 0 && UNIT_BY_ID[a.quantite_defaut.unite]
+        ? { qty: a.quantite_defaut.qty, unit: a.quantite_defaut.unite } : undefined,
+      createdAt: existing?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     await db.put('foods', cf);
     state.customFoods = state.customFoods.filter(c => c.id !== cf.id).concat(cf);
