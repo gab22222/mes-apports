@@ -1,6 +1,6 @@
 // Service worker : met l'app en cache pour qu'elle fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour des fichiers.
-const VERSION = 'mes-apports-v11';
+const VERSION = 'mes-apports-v12';
 const FILES = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'posture.html', 'tennis.html', 'nav.css', 'nav.js',

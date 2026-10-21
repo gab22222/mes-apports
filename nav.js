@@ -1,4 +1,4 @@
-// Barre latérale commune : Alimentation, Posture, Tennis.
+// Barre latérale commune : Alimentation, Exercices, Tennis.
 (function () {
   var root = document.documentElement;
   if (!root.hasAttribute('data-theme-lock')) {
@@ -15,7 +15,7 @@
   };
   var PAGES = [
     { href: './', file: 'index.html', label: 'Alimentation', icon: 'food' },
-    { href: 'posture.html', file: 'posture.html', label: 'Posture', icon: 'posture' },
+    { href: 'posture.html', file: 'posture.html', label: 'Exercices', icon: 'posture' },
     { href: 'tennis.html', file: 'tennis.html', label: 'Tennis', icon: 'tennis' }
   ];
   var here = location.pathname.split('/').pop() || 'index.html';
