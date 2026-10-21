@@ -406,6 +406,8 @@ function pickFood(id, editIndex) {
     qty = it.qty; unit = it.unit;
   } else if (state.lastUse.has(id)) {
     ({ qty, unit } = state.lastUse.get(id));
+  } else if (food.units?.portion) {
+    qty = 1; unit = 'portion'; // aliment personnalisé avec une portion définie : 1 portion par défaut
   }
   state.picked = { food, qty, unit, editIndex };
   $('#food-search').value = '';
@@ -887,6 +889,7 @@ function simPick(id, editIndex) {
   let qty = 100, unit = 'g';
   if (editIndex !== undefined) ({ qty, unit } = state.sim.items[editIndex]);
   else if (state.lastUse.has(id)) ({ qty, unit } = state.lastUse.get(id));
+  else if (food.units?.portion) { qty = 1; unit = 'portion'; }
   state.simPicked = { food, qty, unit, editIndex };
   $('#sim-search').value = '';
   runSearch('', 'sim');
