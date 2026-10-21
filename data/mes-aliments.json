@@ -209,6 +209,30 @@
         "qty": 1,
         "unite": "portion"
       }
+    },
+    {
+      "id": "huile-olive-bio-classico-carapelli",
+      "nom": "Huile d'olive vierge extra bio Classico",
+      "marque": "Carapelli",
+      "code_barres": "8002470023727",
+      "ciqual_ref": "17270",
+      "note": "Étiquette pour 100 ml (821 kcal, lipides 91 g, saturés 15 g) convertie pour 100 g avec une densité de 0,915. 1 c. à soupe rase = 15 ml ≈ 14 g.",
+      "pour_100g": {
+        "energie": 897,
+        "lipides": 99.5,
+        "ags": 16.4,
+        "glucides": 0,
+        "sucres": 0,
+        "proteines": 0,
+        "sel": 0
+      },
+      "unites": {
+        "cas": 14
+      },
+      "quantite_defaut": {
+        "qty": 1,
+        "unite": "cas"
+      }
     }
   ]
 }
