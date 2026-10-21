@@ -1,0 +1,32 @@
+{
+  "description": "Aliments intégrés à l'app (rangée « Mes aliments »). Valeurs pour 100 g, relevées sur l'étiquette ; les nutriments absents viennent de l'aliment Ciqual indiqué dans ciqual_ref. L'id ne doit jamais changer : les repas enregistrés y font référence.",
+  "version": 1,
+  "aliments": [
+    {
+      "id": "foie-de-morue-connetable",
+      "nom": "Foie de morue nature",
+      "marque": "Connétable",
+      "code_barres": "3263670923414",
+      "ciqual_ref": "26142",
+      "pour_100g": {
+        "energie": 560, "lipides": 59, "ags": 9.7, "glucides": 2.3, "sucres": 0, "fibres": 0.8,
+        "proteines": 4.6, "sel": 0.8, "sodium": 320, "vitA": 10000, "vitD": 56
+      },
+      "unites": { "portion": 17 },
+      "quantite_defaut": { "qty": 1, "unite": "portion" }
+    },
+    {
+      "id": "levure-de-biere-gerble",
+      "nom": "Levure de bière à saupoudrer",
+      "marque": "Gerblé",
+      "ciqual_ref": "11009",
+      "pour_100g": {
+        "energie": 331, "lipides": 4.5, "ags": 0.8, "glucides": 16, "sucres": 0.8, "fibres": 23,
+        "proteines": 45, "sel": 0.25, "sodium": 100, "vitB1": 25, "vitB2": 2.5, "vitB3": 19,
+        "vitB5": 6.3, "vitB9": 2311, "phosphore": 1128
+      },
+      "unites": { "cas": 10 },
+      "quantite_defaut": { "qty": 3, "unite": "cas" }
+    }
+  ]
+}

@@ -29,6 +29,7 @@ const FOOD_FORMAT = 'mes-apports-aliment';
 const state = {
   meals: [],
   customFoods: [],
+  builtinFoods: [],    // aliments intégrés à l'app (data/mes-aliments.json)
   weekly: [],          // aliments à manger chaque semaine : { id, name, checkedAt, createdAt, updatedAt }
   equivs: {},
   profile: null,
@@ -65,6 +66,7 @@ async function init() {
   state.settings = mergeSettings(settings);
   applyTheme(state.settings.theme);
   state.meta = meta || {};
+  state.builtinFoods = await loadBuiltinFoods();
   state.customFoods.forEach(registerCustomFood);
   state.draft = draft || newDraft();
   if (sim) state.sim = { ...state.sim, ...sim };
@@ -213,7 +215,9 @@ function renderEntry() {
 function renderMyFoods(sel, action) {
   const box = $(sel);
   if (!box) return;
-  const list = [...state.customFoods].sort((a, b) =>
+  const key = f => f.code_barres || `${f.nom}|${f.marque || ''}`.toLocaleLowerCase('fr');
+  const builtinKeys = new Set(state.builtinFoods.map(key));
+  const list = [...state.builtinFoods, ...state.customFoods.filter(cf => !builtinKeys.has(key(cf)))].sort((a, b) =>
     (state.usage.get(b.id) || 0) - (state.usage.get(a.id) || 0) || a.nom.localeCompare(b.nom, 'fr'));
   box.innerHTML = list.length ? `<p class="my-foods-label">Mes aliments</p>
     <div class="frequent">${list.map(cf => `<button type="button" class="chip" data-action="${action}" data-id="${esc(cf.id)}">
@@ -1146,6 +1150,48 @@ function openImportFood() {
       <pre class="code">${esc(IMPORT_EXAMPLE)}</pre></details>`);
 }
 
+// Aliment au format d'import (étiquette) → fiche d'aliment personnalisé, sans identifiant.
+function foodFromLabel(a, errors) {
+  const valeurs = {}, sources = {};
+  const src = a.pour_100g || a.valeurs || {};
+  for (const [k, v] of Object.entries(src)) {
+    if (NUTRIENT_BY_ID[k] && typeof v === 'number' && isFinite(v)) {
+      valeurs[k] = v;
+      sources[k] = (a.sources && a.sources[k]) || a.source || 'etiquette';
+    }
+  }
+  const ref = a.ciqual_ref ? String(a.ciqual_ref) : undefined;
+  if (ref && !foods.has('c:' + ref)) errors.push(`code Ciqual ${ref} inconnu pour « ${a.nom} »`);
+  return {
+    nom: a.nom.trim(), marque: a.marque || undefined,
+    code_barres: a.code_barres ? String(a.code_barres) : undefined,
+    ciqual_ref: ref && foods.has('c:' + ref) ? ref : undefined, valeurs, sources, source: a.source || 'etiquette',
+    unites: a.unites || {},
+    defaut: a.quantite_defaut && a.quantite_defaut.qty > 0 && UNIT_BY_ID[a.quantite_defaut.unite]
+      ? { qty: a.quantite_defaut.qty, unit: a.quantite_defaut.unite } : undefined,
+  };
+}
+
+// Aliments intégrés à l'app (data/mes-aliments.json) : publiés avec le site,
+// identiques sur tous les appareils, sans import ni synchronisation.
+async function loadBuiltinFoods() {
+  try {
+    const res = await fetch('data/mes-aliments.json');
+    if (!res.ok) return [];
+    const data = await res.json();
+    const errors = [];
+    const list = (data.aliments || [])
+      .filter(a => a && a.id && typeof a.nom === 'string' && a.nom.trim())
+      .map(a => ({ ...foodFromLabel(a, errors), id: 'm:' + a.id, builtin: true }));
+    if (errors.length) console.warn('Aliments intégrés :', errors.join(', '));
+    list.forEach(registerCustomFood);
+    return list;
+  } catch (e) {
+    console.error(e);
+    return [];
+  }
+}
+
 async function importFoods(text) {
   let data;
   try { data = JSON.parse(text); } catch (e) { toast('Ce texte n’est pas du JSON valide.'); return; }
@@ -1154,24 +1200,9 @@ async function importFoods(text) {
   const errors = [];
   for (const a of list) {
     if (!a || typeof a.nom !== 'string' || !a.nom.trim()) { errors.push('aliment sans nom'); continue; }
-    const valeurs = {}, sources = {};
-    const src = a.pour_100g || a.valeurs || {};
-    for (const [k, v] of Object.entries(src)) {
-      if (NUTRIENT_BY_ID[k] && typeof v === 'number' && isFinite(v)) {
-        valeurs[k] = v;
-        sources[k] = (a.sources && a.sources[k]) || a.source || 'etiquette';
-      }
-    }
-    const ref = a.ciqual_ref ? String(a.ciqual_ref) : undefined;
-    if (ref && !foods.has('c:' + ref)) errors.push(`code Ciqual ${ref} inconnu pour « ${a.nom} »`);
     const existing = a.code_barres && state.customFoods.find(c => c.code_barres && c.code_barres === String(a.code_barres));
     const cf = {
-      id: existing ? existing.id : 'u:' + uid(), nom: a.nom.trim(), marque: a.marque || undefined,
-      code_barres: a.code_barres ? String(a.code_barres) : undefined,
-      ciqual_ref: ref && foods.has('c:' + ref) ? ref : undefined, valeurs, sources, source: a.source || 'etiquette',
-      unites: a.unites || {},
-      defaut: a.quantite_defaut && a.quantite_defaut.qty > 0 && UNIT_BY_ID[a.quantite_defaut.unite]
-        ? { qty: a.quantite_defaut.qty, unit: a.quantite_defaut.unite } : undefined,
+      ...foodFromLabel(a, errors), id: existing ? existing.id : 'u:' + uid(),
       createdAt: existing?.createdAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
     };
     await db.put('foods', cf);

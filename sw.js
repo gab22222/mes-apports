@@ -1,11 +1,11 @@
 // Service worker : met l'app en cache pour qu'elle fonctionne hors ligne.
 // Changer VERSION à chaque mise à jour des fichiers.
-const VERSION = 'mes-apports-v18';
+const VERSION = 'mes-apports-v19';
 const FILES = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'posture.html', 'tennis.html', 'nav.css', 'nav.js',
   'js/app.js', 'js/db.js', 'js/foods.js', 'js/model.js', 'js/nutrients.js', 'js/sync.js', 'js/weight.js',
-  'data/ciqual.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
+  'data/ciqual.json', 'data/mes-aliments.json', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', e => {
